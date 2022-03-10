@@ -4,18 +4,23 @@
   "description": "面试题",
   "main": "index.js",
   "scripts": {
-      "serve":"gitbook serve",
-      "build":"gitbook build"
-      
+    "serve": "gitbook serve",
+    "build": "gitbook build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jifengzhiyu/RedyForInterview.git"
   },
-  "author": "霁凤之雨",
+  "author": "霁风之雨",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jifengzhiyu/RedyForInterview/issues"
   },
-  "homepage": "https://github.com/jifengzhiyu/RedyForInterview#readme"
+  "homepage": "https://github.com/jifengzhiyu/RedyForInterview#readme",
+  "dependencies": {
+    "gitbook-plugin-back-to-top-button": "^0.1.4",
+    "gitbook-plugin-code": "^0.1.0",
+    "gitbook-plugin-expandable-chapters": "^0.2.0",
+    "gitbook-plugin-search-pro": "^2.0.2"
+  }
 }
