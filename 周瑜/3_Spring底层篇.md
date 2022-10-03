@@ -67,31 +67,24 @@ AOP:将程序中的交叉业务逻辑（比如安全，日志，事务等），�
 
 ## 6_解释下Spring支持的几种bean的作用域
 
-singleton（单例模式）：默认，每个**容器**中只有一个bean的实例，由BeanFactory自身来维护。该对象的生命周期是与Spring IOC容器一致的，但在第一次被注入时才会创建。
+1. singleton（单例模式）：默认，每个IOC**容器**中只有一个bean的实例，由BeanFactory自身来维护。该对象的生命周期是与Spring IOC容器一致的，但在第一次被注入时创建。
+2. prototype（原型模式）：为每一个getbean请求提供一个实例。在每次注入时都会创建一个新的对象，容器中有多个实例。
+3. request：每个HTTP请求中有一个bean的单例对象，在HTTP请求结束后，bean会随之失效。
+4. session：每个session中有一个bean的单例对象，在session过期后，bean会随之失效。
+5. application：bean被定义为在容器上下文ServletContext的生命周期中复用一个单例对象。
+6. websocket：bean被定义为在websocket的生命周期中复用一个单例对象。
 
-prototype（原型模式）：为每一个bean请求（getbean）提供一个实例。在每次注入时都会创建一个新的对象，容器中有多个实例。
+## 7_Spring事务的实现方式和原理？
 
-request：bean被定义为在每个HTTP请求中创建一个单例对象，也就是说在单个请求中都会复用这一个单例对象。请求结束后该实例对象就会被回收。
+- 在使用Spring框架时，有两种使用事务的方式，一种是编程式（手动写代码），一种是申明式（使用注解）。
+- 事务这个概念是数据库层面的，Spring只是基于数据库中的事务进行了扩展，能让程序员更加方便操作事务。
+- 比如我们可以通过在某个方法上增加@Transactional注解，就可以开启事务，这个方法中所有的sql都会在一个事务中执行，要么都成功要么都失败。
+- 在一个方法上加了@Transactional注解后，Spring会基于这个类生成一个**代理对象**，会将这个代理对象作为bean放在IOC容器中，当在使用这个代理对象的方法时，如果这个方法上存在@Transactional注解，那么**代理逻辑**会先把事务的自动提交设置为false，然后再去执行原本的业务逻辑方法，如果执行业务逻辑方法没有出现异常，那么代理逻辑中就会将事务进行提交，如果执行业务逻辑方法出现了异常，那么则会将事务进行回滚。
+- 针对哪些异常回滚事务是可以配置的，可以利用@Transactional注解中的**rollbackFor**属性进行配置，默认情况下会对RuntimeException和Error进行回滚。
 
-session：与request范围类似，确保每个session中有一个bean的单例对象，在session过期后，bean会随之失效。
+## 8_Spring事务的隔离级别
 
-application：bean被定义为在容器上下文ServletContext的生命周期中复用一个单例对象。
-
-websocket：bean被定义为在websocket的生命周期中复用一个单例对象。
-
-## Spring事务的实现方式和原理以及隔离级别？
-
-在使用Spring框架时，可以有两种使用事务的方式，一种是编程式（手动写代码），一种是申明式（使用注解），@Transactional注解就是申明式的。
-
-首先，事务这个概念是数据库层面的，Spring只是基于数据库中的事务进行了扩展，以及提供了一些能让程序员更加方便操作事务的方式。
-
-比如我们可以通过在某个方法上增加@Transactional注解，就可以开启事务，这个方法中所有的sql都会在一个事务中执行，统一成功或失败。
-
-在一个方法上加了@Transactional注解后，Spring会基于这个类生成一个代理对象，会将这个代理对象作为bean放在IOC容器中，当在使用这个代理对象的方法时，如果这个方法上存在@Transactional注解，那么代理逻辑会先把事务的自动提交设置为false，然后再去执行原本的业务逻辑方法，如果执行业务逻辑方法没有出现异常，那么代理逻辑中就会将事务进行提交，如果执行业务逻辑方法出现了异常，那么则会将事务进行回滚。
-
-当然，针对哪些异常回滚事务是可以配置的，可以利用@Transactional注解中的rollbackFor属性进行配置，默认情况下会对RuntimeException和Error进行回滚。
-
-spring事务隔离级别就是数据库的隔离级别：外加一个默认级别
+spring事务隔离级别就是数据库的隔离级别：外加一个默认级别（不同数据库类型自己的默认级别）
 
 - read uncommitted（未提交读）
 - read committed（提交读、不可重复读），Oracle默认
@@ -100,54 +93,47 @@ spring事务隔离级别就是数据库的隔离级别：外加一个默认级�
 
 > 数据库的配置隔离级别是Read Commited,而Spring配置的隔离级别是Repeatable Read，请问这时隔离 级别是以哪一个为准？ 以Spring配置的为准，如果spring设置的隔离级别数据库不支持，效果取决于数据库
 
-## spring事务传播机制
+## 9_spring事务传播机制
 
-多个事务方法相互调用时,事务如何在这些方法间传播
+> 下面都是@Transactional的7个枚举参数，修饰被调用者（方法B）
 
-a方法调用b方法，a、b方法里面都有事务，这两个事务如何运行（a回滚，b回滚吗）
+a()调用b()时
 
-> 方法A是一个事务的方法，方法A执行过程中调用了方法B，那么方法B有无事务以及方法B对事务的要求不同都 会对方法A的事务具体执行造成影响，同时方法A的事务对方法B的事务执行也有影响，这种影响具体是什么就 由两个方法所定义的事务传播类型所决定。
+- REQUIRED（**required**）(Spring默认的事务传播类型)：
+  - a()没有事务，则b()新建事务；
+  - a()有事务，则b()加入a()的事务，a()b()有异常就回滚。
+- SUPPORTS（**supports**）：
+  - a()没有事务，则b()也没有事务；
+  - a()有事务，则b()加入a()的事务。
+- MANDATORY（**mandatory**）：
+  - a()没有事务，则b()抛出异常；
+  - a()有事务，则b()加入a()的事务。
+- REQUIRES_NEW（**requires-new**）：
+  - **b()创建事务**，若a()有事务则挂起该事务；各自处理各自的事物，需要回滚只回滚自己
+- NOT_SUPPORTED（**not-supported**）：
+  - **b()没有事务**，若a()有事务则挂起该事务
+- NEVER（**never**）：
+  - 都不使用事务，如果a()有事务，则抛出异常
+- NESTED（**nested**）：
+  - a()有事务，则在嵌套事务中执行，a是父事务，b是子事务；父事务回滚时， 子事务也会回滚；子事物回滚时，父事务可以catch其异常
+  - a()没有事务，则b()新建事务
 
-下面都是@Transactional的枚举参数，修饰被调用者
+## 10_Spring中什么时候@Transactional会失效（事务失效）
 
-REQUIRED(Spring默认的事务传播类型)：如果调用方没有事务，则被调用方新建一个事务，如果调用方存在事务，则加入这个事务。a调用b，a没有事务，b新建事务
+sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加的@Transactional失效）的根本原因是这个AOP不起作用了，常见情况有如下几种
 
-SUPPORTS：调用方存在事务，则加入调用方事务，如果调用方没有事务，就以非事务方法执行。
+1. 【重要】发**生自调用**：
+   使用this调用本类的方法(this通常省略)，此时这个this对象不是**代理对象**，而是UserService对象本身，就没有代理逻辑来处理这个@Transactional注解，该注解就会失效。 
+   解法让this变成UserService的代理对象。
 
-MANDATORY：调用方存在事务，则加入当前事务，如果调用方事务不存在，则抛出异常。
+2. **@Transactional用于非public的方法上;**
+   - 如果要用在非public方法上，可以开启**AspectJ代理模式**。
+   - 同时如果某个方法是private，底层cglib是基于父子类来实现的，子类是不能**重载**父类的private方法，所以无法很好利用代理对象
+3.  数据库不支持事务 
+4. bean没有被spring管理
+5. 异常被吃掉，事务不会回滚 或者 抛出的异常没有被定义
 
-REQUIRES_NEW：创建一个新事务，如果存在调用方事务，则挂起该事务。各自处理各自的事物，需要回滚只回滚自己
-
-NOT_SUPPORTED：以非事务方式执行,如果调用方存在事务，则挂起当前事务
-
-NEVER：都不使用事务，如果调用方事务存在，则抛出异常
-
-NESTED：如果调用方事务存在，则在嵌套事务中执行，a是父事务，b是子事物，否则REQUIRED的操作一样（开启一个事务）
-
-> 和REQUIRES_NEW的区别 
->
-> REQUIRES_NEW是新建一个事务并且新开启的这个事务与原有事务无关，而NESTED则是当前存在事务时（我 们把当前事务称之为父事务）会开启一个嵌套事务（称之为一个子事务）。 在NESTED情况下父事务回滚时， 子事务也会回滚，而在REQUIRES_NEW情况下，原有事务回滚，不会影响新开启的事务。 
->
-> 和REQUIRED的区别 
->
-> REQUIRED情况下，调用方存在事务时，则被调用方和调用方使用同一事务，那么被调用方出现异常时，由于共用一个事务，所以无论调用方是否catch其异常，事务都会回滚。而在NESTED情况下，被调用方发生异常时，调用方可以catch其异常，这样只有子事务回滚，父事务不受影响；父事务回滚，子事务一定回滚。
-
-## Spring中什么时候@Transactional会失效（事务失效）
-
-sprig事务的原理是AOP,进行了切面增强，那么失效（方法上加的@Transactional失效）的根本原因是这个AOP不起作用了，常见情况有如下几种
-1、【重要】发生自调用，类里面使用this调用本类的方法(this通常省略)，此时这个this对象不是代理类，而是UserService对象本身，就没有代理逻辑来处理这个@Transactional注解，该注解就会失效。 解决方法很简单，让那个this变成UserService的代理类即可！
-
-不是由Spring事务的代理对象执行该方法
-
-2、方法不是public的：@Transactional只能用于public的方法上，否则事务不会失效，如果要用在非public方法上，可以开启AspectJ代理模式。同时如果某个方法是privatel的，那么@Transactionali也会失效，因为底层cglib是基于父子类来实现的，子类是不能重载父类的private方法的，所以无法很好的利用代理，也会导致@Transactianals失效
-
- 3、数据库不支持事务 
-
-4、bean没有被spring管理
-
-5、异常被吃掉，事务不会回滚或者抛出的异常没有被定义，默认为RuntimeException
-
-## 什么是bean的自动装配，有哪些方式？
+## 11_什么是bean的自动装配，有哪些方式？
 
 - 开启自动装配，只需要在xml配置文件中定义“autowire”属性。
 
@@ -157,14 +143,14 @@ sprig事务的原理是AOP,进行了切面增强，那么失效（方法上加�
 
 - autowire属性有五种装配的方式：
 
-  -  缺省情况下，自动配置是通过“ref”属性手动设定
+  - **缺省情况下**，通过“ref”属性手动设定
 
     ```
     手动装配：以value或ref的方式明确指定属性值都是手动装配。 
     需要通过‘ref’属性来连接bean。
     ```
 
-    - byName-根据bean的属性名称进行自动装配。
+    - byName ---根据bean的属性名称进行自动装配。
 
       ```xml
       Cutomer的属性名称是person，Spring会将bean id为person的bean通过setter方法进行自动装配。
@@ -172,69 +158,63 @@ sprig事务的原理是AOP,进行了切面增强，那么失效（方法上加�
       <bean id="person" class="com.xxx.xxx.Person"/>
       ```
 
-  - byType-根据bean的类型进行自动装配。
+    - byType---根据bean的类型进行自动装配。
 
+  
     ```xml
     Cutomer的属性person的类型为Person，Spirng会将Person类型通过setter方法进行自动装配。
     <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="byType"/>
     <bean id="person" class="com.xxx.xxx.Person"/>
     ```
-
-  - constructor-类似byType，不过是应用于构造器的参数。如果一个bean与构造器参数的类型形同，则进行自动装配，否则导致异常。
-
+  
+    -  constructor---如果一个bean与构造器参数的类型形同，则进行自动装配，否则导致异常。
+  
+  
     ```xml
     Cutomer构造函数的参数person的类型为Person，Spirng会将Person类型通过构造方法进行自动装配。
     <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="construtor"/>
     <bean id="person" class="com.xxx.xxx.Person"/>
     ```
 
-  - autodetect-如果有默认的构造器，则通过constructor方式进行自动装配，否则使用byType方式进行自动装配。
+    -  autodetect---如果有默认的构造器，则通过constructor方式进行自动装配，否则使用byType方式进行自动装配。
+  
 
-    ```xml
-    如果有默认的构造器，则通过constructor方式进行自动装配，否则使用byType方式进行自动装配。
-    ```
+@Autowired注解方式自动装配bean，可以在**字段、setter方法、构造方法**上使用。
 
-@Autowired注解方式自动装配bean，可以在字段、setter方法、构造函数上使用。
+## 12_描述一下Spring Bean的生命周期？
 
-## 描述一下Spring Bean的生命周期？
+1. 解析类得到BeanDefinition
+2. 如果有多个构造方法，则要推断**构造方法**
+3. 确定好构造方法后，进行实例化得到一个对象
+4. 对对象中的加了@Autowired注解的属性进行注入
+5. **处理回调Aware接口**，比如BeanNameAware，BeanFactoryAware
+6. 初始化前，调用BeanPostProcessor的**初始化前的方法**，@PostConstruct注解的方法在BeanPostProcessor**前置处理器**中被执行。
+7. 调用初始化方法，如果bean的类实现了**InitializingBean**接口，就处理该接口
+8. 初始化后，进行AOP
+9. 如果当前创建的bean是单例的则会把bean放入单例池
+10. 使用bean
+11. Spring容器关闭时调用**DisposableBean**中destory()方法
 
-1、解析类得到BeanDefinition
+## 13_Spring中Bean是线程安全的吗？
 
-2、如果有多个构造方法，则要推断构造方法
+- Spring中的Bean默认是单例模式，并没有针对Bean做线程安全的处理，所以： 
 
-3、确定好构造方法后，进行实例化得到一个对象
+1. 如果Bean是无状态（bean**内部属性**不会变化）的，那么Bean则是线程安全的 
 
-4、对对象中的加了@Autowired注解的属性进行属性填充
+2. 如果Bean是有状态的，那么Bean则不是线程安全的
 
-5、处理回调Aware接口，比如BeanNameAware，BeanFactoryAware
+   ​	做法：
 
-6、初始化前，调用BeanPostProcessor的初始化前的方法，@PostConstruct注解后的方法在BeanPostProcessor前置处理器中就被执行了。
+   - 改变**bean的作用域**，把 "singleton"改为"protopyte"，这样每次请求Bean就相当于是 new Bean() 。
+   - 不要在bean中声明任何有状态的**实例变量或类变量**，如果必须如此，那么就使用**ThreadLocal**把变量变为**线程私有**，如果bean的实例变量或类变量需要在多个线程之间共享，那么就只能使用synchronized、lock、CAS等线程同步方法了。
 
-7、调用初始化方法，如果bean的类实现了InitializingBean接口，就处理该接口
+- 另外，Bean是不是线程安全，跟Bean的作用域没有关系，得看这个Bean对象本身的各种方法属性是不是线程安全（方法有没有加锁等）。
 
-8、初始化后，进行AOP
+## 14_ApplicationContext和BeanFactory有什么区别
 
-9、如果当前创建的bean是单例的则会把bean放入单例池
-
-10、使用bean
-
-11、Spring容器关闭时调用DisposableBean中destory()方法
-
-## Spring中Bean是线程安全的吗？
-
-Spring中的Bean默认是单例模式，并没有针对Bean做线程安全的处理，所以： 
-
-1, 如果Bean是无状态的，那么Bean则是线程安全的 
-
-2,如果Bean是有状态的（bean内部属性会变化），那么Bean则不是线程安全的
-最简单的办法就是改变bean的作用域把 "singleton"改为’‘protopyte’ 这样每次请求Bean就相当于是 new Bean() 这样就可以保证线程的安全了。
-不要在bean中声明任何有状态的实例变量或类变量，如果必须如此，那么就使用ThreadLocal把变量变为线程私有的，如果bean的实例变量或类变量需要在多个线程之间共享，那么就只能使用synchronized、lock、CAS等这些实现线程同步的方法了。
-
-另外，Bean是不是线程安全，跟Bean的作用域没有关系，Bean的作用域只是表示Bean的生命周期范围，对于任何生命周期的Bean都一个对象，这个对象是不是线程安全的，还是得看这个Bean对象本身的各种方法属性是不是线程安全（方法有没有加锁等）。
-
-## ApplicationContext和BeanFactory有什么区别
-
-BeanFactory是Spring中非常核心的组件，表示Bean工厂，可以生成Bean,维护Bean,而ApplicationContext接口继承了BeanFactory接口,所以ApplicationContext拥有BeanFactory 所有的特点，也是一个Bean工厂，但是ApplicationContext除开继承了BeanFactory,之外，还继承了诸如EnvironmentCapable、MessageSource、ApplicationEventPublisher、ResourcePatternResolver接口，从而ApplicationContext还有获取系统环境变量（获取操作系统、jvm环境变量的键值、property文件的键值）、国际化、事件发布、资源解析器（获取网络的某个网页、文系统的某个文件）功能，这是BeanFactory)所不具备的
+- BeanFactory是Spring中非常核心的组件，表示Bean工厂，可以生成Bean,维护Bean
+- 而ApplicationContext接口继承了BeanFactory接口,所以ApplicationContext拥有BeanFactory 所有的特点，也是一个Bean工厂，
+  但是ApplicationContext除开继承了BeanFactory,之外，还继承了诸如EnvironmentCapable、MessageSource、ApplicationEventPublisher、ResourcePatternResolver接口，从而ApplicationContext还有获取系统环境变量（获取操作系统、jvm环境变量的键值、property文件的键值）、国际化、事件发布、资源解析器（获取网络的某个网页、文系统的某个文件）功能，这是BeanFactory)所不具备的
 
 ## Spring中的事务是如何实现的
 
