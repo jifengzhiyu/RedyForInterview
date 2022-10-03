@@ -212,44 +212,63 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 
 ## 14_ApplicationContext和BeanFactory有什么区别
 
-- BeanFactory是Spring中非常核心的组件，表示Bean工厂，可以生成Bean,维护Bean
-- 而ApplicationContext接口继承了BeanFactory接口,所以ApplicationContext拥有BeanFactory 所有的特点，也是一个Bean工厂，
-  但是ApplicationContext除开继承了BeanFactory,之外，还继承了诸如EnvironmentCapable、MessageSource、ApplicationEventPublisher、ResourcePatternResolver接口，从而ApplicationContext还有获取系统环境变量（获取操作系统、jvm环境变量的键值、property文件的键值）、国际化、事件发布、资源解析器（获取网络的某个网页、文系统的某个文件）功能，这是BeanFactory)所不具备的
+- BeanFactory是Spring中非常核心的组件，可以生成并维护Bean
+- 而ApplicationContext接口继承了BeanFactory接口，它还继承了以下接口
+  - EnvironmentCapable 获取**系统环境变量**（获取操作系统、jvm环境变量的键值对、property文件的键值对）、
+  - MessageSource 国际化、
+  - ApplicationEventPublisher **事件发布**、
+  - ResourcePatternResolver **资源解析器**（获取网络的某个网页、系统的某个文件）
 
-## Spring中的事务是如何实现的
+## 15_Spring中的事务是如何实现的
 
-1.Spring事务底层是基于数据库事务和AOP机制的
-2.首先对于使用了@Transactional注解的Bean,Spring会创建一个代理对象作为Bean
-3.当调用代理对象的方法时，会先判断该方法上是否加了@Transactional注解
-4.如果加了，那么则利用事务管理器创建一个数据库连接
-5.并且修改数据库连接的autocommit属性为false,禁止此连接的自动提交，这是实现Spring事务非常重要的一步
-6.然后执行当前方法，方法中会执行sql
-7.执行完当前方法后，如果没有出现异常就直接提交事务
-8.如果出现了异常，并且这个异常是需要回滚的就会回滚事务，否则仍然提交事务 
-9,Spring事务的隔离级别对应的就是数据库的隔离级别
-10.Spring事务的传播机制是Spring事务自己实现的，也是Spring事务中最复杂的
-11.Spring事务的传播机制是基于数据库连接来做的，一个数据库连接一个事务，如果传播机制配置为需要新开一个事务，那么实际上就是先建立一个数据库连接，在此新 数据库连接上执行sql
+1. Spring事务底层是基于数据库事务和AOP机制
+2. 首先对于使用了@Transactional注解的Bean，Spring会创建一个代理对象作为Bean
+3. 当调用代理对象的方法时，会先判断该方法上是否加了@Transactional注解
+4. 如果加了，那么则利用**事务管理器**创建一个数据库连接
+5. 并且修改**数据库连接**的autocommit属性为false
+6. 然后执行当前方法，方法中会执行sql
+7. 执行完当前方法后，如果没有出现异常就直接提交事务
+8. 如果出现了异常，并且这个异常是需要回滚的就会回滚事务，否则仍然提交事务 
+9. Spring事务的隔离级别对应的就是数据库的隔离级别
+10. Spring**事务的传播机制**是Spring事务自己实现的，一个数据库连接对应一个事务，（如果传播机制配置为需要新开一个事务，那么实际上就是先建立一个数据库连接），在此新数据库连接上执行sql
 
-## Spring容器启动流程是怎样的
+## 16_Spring容器启动流程是怎样的
 
-1.在创建Spring容器，也就是启动Spring时：
-2.首先会进行扫描，扫描得到所有的BeanDefinition对象，并存在一个Map中
-3.然后筛选出非懒加载的单例BeanDefinition进行创建Bean,对于多例Bean不需要在启动过程中去进行创建，对于多例Bean会在每次获取Bean时利用BeanDefinition去创建
-4.利用BeanDefinition创建Bean就是Bean的创建生命周期，这期间包括了合并BeanDefinition、推断构造方法、实例化、属性填充、初始化前、初始化、初始化后等步骤
-其中AOP就是发生在初始化后这一步骤中
-5.非懒加载的单例Bean创建完了之后，Spring会发布一个容器启动事件，表示Spring启动结束
-6.在源码中会更复杂，比如源码中会提供一些模板方法，让子类来实现，比如源码中还涉及到一些BeanFactoryPostProcessor和BeanPostProcessor的注册，Spring的扫描就是通过BenaFactoryPostProcessor来实现的，依赖注入就是通过BeanPostProcessor来实现的
-7.在Spring启动过程中还会去处理@Import等注解
+1. 首先会进行扫描，扫描得到所有的BeanDefinition对象，并存在一个Map中
+2. 然后筛选出**非懒加载的单例**利用BeanDefinition进行创建Bean，对于多例Bean会在每次获取Bean时利用BeanDefinition去创建
+3. 利用BeanDefinition创建Bean就是Bean的创建生命周期，这期间包括了**合并BeanDefinition**、**推断构造方法**、实例化、属性注入、初始化前、初始化、初始化后等步骤
+   其中AOP就是发生在初始化后这一步骤中
+4. 非懒加载的单例Bean创建完了之后，Spring会发布一个**容器启动事件**，表示Spring启动结束
 
-## **Spring** 框架中都用到了哪些设计模式？
+后面先不背
+
+1. 在源码中会更复杂，比如源码中会提供一些模板方法，让子类来实现，比如源码中还涉及到一些BeanFactoryPostProcessor和BeanPostProcessor的注册，Spring的扫描就是通过BenaFactoryPostProcessor来实现的，依赖注入就是通过BeanPostProcessor来实现的
+2. 在Spring启动过程中还会去处理@Import等注解
+
+## 17_Spring框架中都用到了哪些设计模式？
+
+- 工厂模式：BeanFactory
+- 原型模式：bean的作用域中有prototype（原型模式），为每一个getbean请求提供一个实例。
+- 单例模式：bean的作用域中默认每个IOC**容器**中只有一个bean的实例。
+- 构造器模式：BeanDefinitionBuilder（BeanDefinition构造器）
+- 适配器模式：AdvisorAdapter（把Advisor适配成MethodInterceptor）
+- 访问者模式：PropertyAccessor（属性访问器，用来访问和设置某个对象的某个属性）
+- 装饰器模式：BeanWrapper （比单纯的Bean对象功能更加强大）
+- 代理模式：生成了代理对象的地方就用到了代理模式，有AOP、@Configuration、@Lazy
+- 观察者模式：ApplicationListener（事件监听机制）
+- 策略模式：BeanNameGenerator （beanName生成器）
+- 模板方法模式：AbstractApplicationContext（onRefresh() 子类可以做一些额外的初始化）
+- 责任链模式：DefaultAdvisorChainFactory（负责构造一条AdvisorChain,代理对象执行某个方法时会依次经过AdvisorChain中的每个Advisor）
+
+---
 
 简单工厂：由一个工厂类根据传入的参数，动态决定应该创建哪一个产品类。
 
-> Spring中的BeanFactory就是简单工厂模式的体现，根据传入一个唯一的标识来获得Bean对象，但是否是在传入参数后创建还是传入参数前创建这个要根据具体情况来定。 
+> Spring中的**BeanFactory**就是简单工厂模式的体现，根据传入一个唯一的标识来获得Bean对象，但是否是在传入参数后创建还是传入参数前创建这个要根据具体情况来定。 
 
 工厂方法：
 
-> 实现了FactoryBean接口的bean是一类叫做factory的bean。其特点是，spring会在使用getBean()调 用获得该bean时，会自动调用该bean的getObject()方法，所以返回的不是factory这个bean，而是这个 bean.getOjbect()方法的返回值。
+> 实现了FactoryBean接口的bean是一类叫做factory的bean。其特点是，spring会在使用getBean()调用获得该bean时，会自动调用该bean的getObject()方法，所以返回的不是factory这个bean，而是这个 bean.getOjbect()方法的返回值。
 
 单例模式：保证一个类仅有一个实例，并提供一个访问它的全局访问点
 
@@ -265,13 +284,13 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 
 动态代理：
 
-> 切面在应用运行的时刻被织入。一般情况下，在织入切面时，AOP容器会为目标对象创建动态的创建一个代理 对象。SpringAOP就是以这种方式织入切面的。 
+> 切面在应用运行的时刻被织入。一般情况下，在织入切面时，AOP容器会为目标对象创建动态地创建一个代理对象。SpringAOP就是以这种方式织入切面的。 
 >
 > 织入：把切面应用到目标对象并创建新的代理对象的过程。
 
 观察者模式：
 
-> spring的事件驱动模型使用的是 观察者模式 ，Spring中Observer模式常用的地方是listener的实现。
+> spring的事件驱动模型使用的是观察者模式 ，Spring中Observer模式常用的地方是listener的实现。
 
 策略模式：
 
