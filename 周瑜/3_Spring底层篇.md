@@ -248,7 +248,7 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 ## 17_Spring框架中都用到了哪些设计模式？
 
 - 工厂模式：BeanFactory
-- 原型模式：bean的作用域中有prototype（原型模式），为每一个getbean请求提供一个实例。
+- 原型模式：bean的**作用域**中有prototype（原型模式），为每一个getbean请求提供一个实例。
 - 单例模式：bean的作用域中默认每个IOC**容器**中只有一个bean的实例。
 - 构造器模式：BeanDefinitionBuilder（BeanDefinition构造器）
 - 适配器模式：AdvisorAdapter（把Advisor适配成MethodInterceptor）
