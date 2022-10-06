@@ -9,7 +9,7 @@
 ## 2_SpringMVC/SpringBoot常用注解
 
 - SpringMVC注解:
-  - 在类上的注解：类是交给Spring容器进行管理
+  - 在类上的注解：类是交给Spring容器进行管理，用于注册Bean
     - @controller 控制器（注入服务）
     - @service 服务（注入dao）
     - @repository dao（**实现dao访问**)
@@ -18,6 +18,7 @@
   - @GetMapping：处理请求方法的GET类型
   - @PostMapping：处理请求方法的POST类型等。
   - @RequestMapping ：来映射URL请求，指定控制器可以处理哪些URL请求 @RequestMapping("/test")
+  - @bean：放在方法上，让方法产生一个Bean，然后返回交给Spring容器。
 - springboot注解：
   - @SpringBootApplication：启动类注解
   - @Autowired：**依赖注入实体类**
@@ -92,30 +93,20 @@ initFlashMapManager(context)，用来管理FlashMap的，FlashMap主要用在red
 ## 6_如何理解SpringBoot中的Starter
 
 - 以前使用Spring + SpringMVC，如果需要引入mybatis等框架，需要到xml中定义mybatis需要的bean。
-- 定义一个starter的jar包，写一个@Configuration配置类、将这些bean定义在里面，然后把配置类的全路径放在META-INF/spring.factories中，springboot会按照约定来加载该配置类到IOC容器中。
+- 现在定义一个starter的jar包，写一个@Configuration配置类、将这些bean定义在里面，然后把配置类的全路径放在META-INF/spring.factories中，springboot会按照约定来加载该配置类到IOC容器中。
 - 开发人员只需要将相应的starter包依赖进应用，进行相应的属性配置（有的可以使用默认配置），就可以直接进行代码开发，使用对应的功能了，比如mybatis-spring-boot-starter，spring-boot-starter-redis。
 
-## 什么是嵌入式服务器？为什么要使用嵌入式服务器?
+## 7_什么是嵌入式服务器？为什么要使用嵌入式服务器?
 
-Spring+SpringMVC开发时，需要单独在操作系统上部署tomcat（中间件），将应用打包成war包，部署到tomcat的webApp目录上。
+Spring+SpringMVC开发时，需要单独在操作系统上部署tomcat中间件，将应用打包成war包，部署到tomcat的webApp目录上。
 
-SpringBoot节省了下载安装tomcat，应用也不需要再打war包，然后放到webapp目录下再运行。内置了tomcat.jar，就是入式服务器，运行main方法时会去启动tomcat，并利用tomcat的spi机制加载SpringMVC。只需要安装JVM，就可以直接在上面部署应用程序jar包，直接运行。
+SpringBoot内置了tomcat.jar，就是嵌入式服务器，运行main方法时会去启动tomcat，并利用tomcat的spi机制加载SpringMVC。只需要安装JVM，就可以直接在上面部署应用程序jar包，直接运行。
 
 使用嵌入式服务器更方便部署。
 
-## SpringBootr中常用注解及其底层实现
+## 8_SpringBoot是如何启动Tomcat
 
-1,@Spring BootApplication注解：这个注解标识了一个SpringBoot工程，它实际上是另外三个注解的组合，这三个注解是：
-a.@Spring BootConfiguration:这个注解实际就是一个@Configuration,表示启动类也是一个配置类
-b,@EnableAutoConfiguration:向Spring容器中导入了一个Selector,用来加载ClassPath下SpringFactories中所定义的自动配置类，将这些自动加载为配置Bean 
-c,@ComponentScan:标识扫描路径，因为默认是没有配置实际扫描路径，所以SpringBoot扫描的路径是启动类所在的当前目录
-
-2.@Bean注解：用来定义Bean,类似于XML中的<bean>标签，Spring在启动时，会对加了@Bean注解的方法进行解析，将方法的名字做为beanName,并通过执行方法得到bean对象
-3.@Controller、@Service、@ResponseBody、@Autowired都可以说
-
-## SpringBoot是如何启动Tomcat
-
-1.首先，SpringBoot在启动时会先创建一个Spring容器
-2.在创建Spring容器过程中，会利用@ConditionalOnClass技术来判断当前classpath中是否存在Tomcat依赖，如果存在则会生成一个启动Tomcat的Bean
-3.Spring容器创建完之后，就会获取启动Tomcat的Bean,并创建Tomcat对象，并绑定端口等，然后启动Tomcat
+1. 首先，SpringBoot在启动时会先创建一个Spring容器
+2. 在创建Spring容器过程中，会利用@ConditionalOnClass判断当前classpath中是否存在Tomcat依赖，如果存在则会生成一个启动Tomcat的Bean
+3. Spring容器创建完之后，就会获取启动Tomcat的Bean,并创建Tomcat对象，并绑定端口等，然后启动Tomcat
 
