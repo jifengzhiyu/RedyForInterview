@@ -1,5 +1,3 @@
-https://www.runoob.com/redis/redis-tutorial.html
-
 # 7_redis
 
 ## Redis是什么？简述它的优缺点？
