@@ -107,6 +107,6 @@ SpringBoot内置了tomcat.jar，就是嵌入式服务器，运行main方法时�
 ## 8_SpringBoot是如何启动Tomcat
 
 1. 首先，SpringBoot在启动时会先创建一个Spring容器
-2. 在创建Spring容器过程中，会利用@ConditionalOnClass判断当前classpath中是否存在Tomcat依赖，如果存在则会生成一个启动Tomcat的Bean
-3. Spring容器创建完之后，就会获取启动Tomcat的Bean,并创建Tomcat对象，并绑定端口等，然后启动Tomcat
+2. 在创建Spring容器过程中，会利用@ConditionalOnClass判断当前classpath中是否存在Tomcat依赖，如果存在则会生成一个**启动Tomcat的Bean**
+3. Spring容器创建完之后，就会获取启动Tomcat的Bean,并创建Tomcat对象，并**绑定端口**等，然后启动Tomcat
 
