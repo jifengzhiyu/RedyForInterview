@@ -1,5 +1,39 @@
 # 6_MySQL
 
+## MySQL是什么
+
+MySQL是一个 开放源代码的**关系型数据库管理系统**，MySQL是可以定制的。
+
+> DBMS:数据库管理系统(Database Management System)
+
+## 关系型数据库与非关系型数据库
+
+- 关系型数据库绝对是 DBMS 的主流，其中使用最多的 DBMS 分别是 Oracle、 MySQL 和 SQL Server。这些都是关系型数据库（RDBMS）。
+
+### 关系型数据库(RDBMS)
+
+- 这种类型的数据库是 最古老 的数据库类型，关系型数据库模型是把复杂的数据结构归结为简单的二元关系 （即二维表格形式）。
+- 关系型数据库以 行(row) 和 列(column) 的形式存储数据，以便于用户理解。这一系列的行和列被称为 表(table) ，一组表组成了一个库(database)。
+- 表与表之间的数据记录有关系(relationship)。现实世界中的各种实体以及实体之间的各种联系均用关系模型 来表示。关系型数据库，就是建立在 关系模型 基础上的数据库。
+- **优势**
+  - **复杂查询** 可以用SQL语句方便的在一个表以及多个表之间做非常复杂的数据查询。
+  - **事务支持** 使得对于安全性能很高的数据访问要求得以实现。
+
+### 非关系型数据库(非RDBMS) 
+
+- **非关系型数据库**，可看成传统关系型数据库的功能 阉割版本 ，基于键值对存储数据，不需要经过SQL层的解析， 性能非常高 。同时，通过减少不常用的功能，进一步提高性能。目前基本上大部分主流的非关系型数据库都是免费的。
+- NoSQL 泛指非关系型数据库
+
+## 表的关联关系
+
+- 一对一关联：在实际的开发中应用不多，因为一对一可以创建成一张表。
+  - 基础信息表 （常用信息）：学号、姓名、手机号码、班级、系别
+  - 档案信息表 （不常用信息）：学号、身份证号码、家庭住址、籍贯、紧急联系人、...
+- 一对多关联：客户表和订单表
+- 多对多关联：要表示多对多关系，必须创建第三个表，该表通常称为 联接表 ，它将多对多关系划分为两个一对多关系。将这两个表的主键都插入到第三个表中。
+  “订单”表和“产品”表有一种多对多的关系，这种关系是通过与“订单明细”表建立两个一对多关系来定义的。
+- 自我引用：员工表，员工姓名，部门编号， 主管编号。
+
 ## 索引的基本原理
 
 索引是一种数据结构
@@ -199,3 +233,255 @@ B+树叶子节点存储了所有数据并且进行了排序，并且叶子节点
 
 但是会降低插入、删除、更新表的速度，因为在执行这些写操作时，还要操作索引文件
 索引需要占物理空间，除了数据表占数据空间之外，每一个索引还要占一定的物理空间，如果要建立聚簇索引，那 么需要的空间就会更大，如果非聚集索引很多，一旦聚集索引改变，那么所有非聚集索引都会跟着变。
+
+----
+
+## 书写规范
+
+- 字符串型和日期时间类型的数据可以使用单引号（' '）表示
+- 列的别名，尽量使用双引号（" "），而且不建议省略as 
+- 每条命令以 ; （navicat）或 \g 或 \G 结束（terminal）
+
+- **推荐采用统一的书写规范：**
+  - 数据库名、表名、表别名、字段名、字段别名等都小写
+  - SQL 关键字、函数名、绑定变量等都大写
+
+```sql
+-- 列的别名
+-- 列的别名不能在WHERE中使用。
+SELECT employee_id emp_id,
+last_name AS lname,
+department_id "部门id",
+salary * 12 AS "annual sal"
+FROM employees;
+
+-- 去除重复行
+SELECT DISTINCT department_id 
+FROM employees;
+
+-- 过滤数据
+-- WHERE子句紧随FROM子句
+-- WHERE 需要声明在FROM后，ORDER BY之前。
+-- LIMIT 子句必须放在整个SELECT语句的最后！
+SELECT employee_id,last_name,salary
+FROM employees
+WHERE salary > 6000
+ORDER BY salary DESC
+#limit 0,10;
+LIMIT 10;
+
+SELECT ....,....,....(存在聚合函数)
+FROM ... (LEFT / RIGHT)JOIN ....ON 多表的连接条件 
+(LEFT / RIGHT)JOIN ... ON .... （习惯上把数据多的放在左边，一般就是左外）
+WHERE 不包含聚合函数的过滤条件
+GROUP BY ...,....
+HAVING 包含聚合函数的过滤条件
+ORDER BY ....,...(ASC / DESC )
+LIMIT ...,....
+
+#4.2 SQL语句的执行过程：
+#FROM ...,...-> ON -> (LEFT/RIGNT  JOIN) -> WHERE -> GROUP BY -> HAVING -> SELECT -> DISTINCT -> 
+# ORDER BY -> LIMIT
+
+-- 排序
+-- 如果没有使用排序操作，默认情况下查询返回的数据是按照添加数据的顺序显示的。
+#练习：显示员工信息，按照department_id的降序排列，salary的升序排列
+-- 默认按照升序排列。
+SELECT employee_id,salary,department_id
+FROM employees
+ORDER BY department_id DESC,salary ASC;
+
+-- 分页
+-- LIMIT [位置偏移量,] 行数
+-- 前10条记录： 
+SELECT * FROM 表名 LIMIT 0,10; 
+-- （当前页数-1）* 每页条数，每页条数
+SELECT * FROM table 
+LIMIT(PageNo - 1)*PageSize,PageSize;
+# 需求2：每页显示20条记录，此时显示第2页
+SELECT employee_id,last_name
+FROM employees
+LIMIT 20,20;
+```
+
+```sql
+-- 多表查询
+-- 多表查询的分类
+/*
+等值连接vs非等值连接
+自连接vs非自连接
+内连接vs外连接
+*/
+#自连接的例子：
+#练习：查询员工id,员工姓名及其管理者的id和姓名
+SELECT emp.employee_id,emp.last_name,mgr.employee_id,mgr.last_name
+FROM employees emp ,employees mgr
+WHERE emp.`manager_id` = mgr.`employee_id`;
+
+-- JOIN ...ON
+-- 它的嵌套逻辑类似我们使用的 FOR 循环
+-- 超过三个表禁止 join。需要 join 的字段，数据类型保持绝对一致；多表关联查询时， 保证被关联的字段需要有索引。
+#SQL99语法实现内连接：
+-- 连续使用
+SELECT last_name,department_name,city
+FROM employees e JOIN departments d
+ON e.`department_id` = d.`department_id`
+JOIN locations l
+ON d.`location_id` = l.`location_id`;
+-- 左/右外连接
+SELECT last_name,department_name
+FROM employees e LEFT JOIN departments d
+ON e.`department_id` = d.`department_id`;
+#满外连接：mysql不支持FULL OUTER JOIN
+
+-- **合并查询结果** 利用UNION关键字，可以给出多条SELECT语句，并将它们的结果组合成单个结果集。合并时，两个表对应的列数和数据类型必须相同，并且相互对应。各个SELECT语句之间使用UNION或UNION ALL关键字分隔。
+-- UNION 返回两个查询的结果集的并集，去除重复记录
+-- UNION ALL 返回两个查询的结果集的并集。对于两个结果集的重复部分，不去重。
+# 左下图：满外连接
+# 方式1：左上图 UNION ALL 右中图
+SELECT employee_id,department_name
+FROM employees e LEFT JOIN departments d
+ON e.`department_id` = d.`department_id`
+UNION ALL
+SELECT employee_id,department_name
+FROM employees e RIGHT JOIN departments d
+ON e.`department_id` = d.`department_id`
+WHERE e.`department_id` IS NULL;
+```
+
+![image-20221007171322726](Pic/image-20221007171322726.png)
+
+```sql
+-- 所有运算符或列值遇到null值，运算的结果都为null
+
+-- 比较运算符
+-- 比较的结果为真则返回1，比较的结果为假则返回0，其他情况则返回NULL。
+-- 数字用符号 字段用关键字
+
+-- 等于运算符 一个等号;
+-- 等于运算符，如果等号两边的值、字符串或表达式中有一个为NULL，则比较结果为NULL。
+-- 安全等于运算符（<=>）与等于运算符（=）的作用是相似的， 唯一的区别是‘<=>’可以用来对NULL进行判断。在两个操作数均为NULL时，其返回值为1，而不为NULL；当一个操作数为NULL时，其返回值为0，而不为NULL。
+
+BETWEEN运算符使用的格式通常为 WHERE C (NOT) BETWEEN A AND B，此时，当C大于或等于A，并且C小于或等于B时，结果为1，否则结果为0。 
+
+-- IN运算符
+-- IN运算符用于判断给定的值是否是IN列表中的一个值，如果是则返回1，否则返回0。如果给定的值为NULL则结果为NULL。 
+WHERE department_id (NOT) IN (NULL,10,20,30);
+
+-- LIKE运算符主要用来匹配字符串，通常用于模糊匹配，如果满足条件则返回1，否则返回0。如果给定的值或者匹配条件为NULL，则返回结果为NULL。 
+/*
+通配符
+“%”：不确定个数的字符0个或多个字符。 
+“_”：只能匹配一个字符。
+*/
+#练习：查询第3个字符是'a'的员工信息
+SELECT last_name
+FROM employees
+WHERE last_name LIKE '__a%';
+------------------------------------------------------------------------------------------------------
+-- 逻辑运算符
+逻辑非（NOT或!）运算符表示当给定的值为0时返回1；当给定的值为非0值时返回0；当给定的值为NULL时，返回NULL。 
+逻辑与（AND或&&）运算符是当给定的所有值均为非0值，并且都不为NULL时，返回1；当给定的一个值或者多个值为0时则返回0；否则返回NULL。 
+逻辑或（OR或||）运算符是当给定的值都不为NULL，并且任何一个值为非0值时，则返回1，否则返回0；当一个值为NULL，并且另一个值为非0值时，返回1，否则返回NULL；当两个值都为NULL时，返回NULL。 
+```
+
+```sql
+-- 函数
+/*
+内置函数分为两类： 单行函数 、 聚合函数（或分组函数）
+单行函数：每行返回一个结果，可以嵌套
+聚合函数：输入的是一组数据的集合，输出的是单个值，不能嵌套调用
+
+字符串函数（单行函数）
+- MySQL里面，字段名下数据的查询不分大小写，即使查询条件是字段名下数据的小写，大写的数据也会查询出来
+- MySQL里面，字符串的角标从1开始
+
+IF(value,value1,value2)如果value的值为TRUE，返回value1，否则返回value2 
+IFNULL(value1, value2)如果value1不为NULL，返回value1，否则返回value2
+*/
+
+-- 聚合函数
+AVG / SUM ：只适用于数值类型的字段（或变量）
+-- 不能用于日期，字符串
+SELECT AVG(salary),SUM(salary),AVG(salary) * 107
+FROM employees;
+
+MAX / MIN :适用于任意数据类型
+-- 组函数一般要起别名
+SELECT MAX(salary) max_sal ,MIN(salary) mim_sal,AVG(salary) avg_sal,SUM(salary) sum_sal
+FROM employees;
+
+/*
+COUNT 计算指定字段在查询结构中出现的个数（不包含NULL值的）
+count(*)会统计值为 NULL 的行，而 count(列名)不会统计此列为 NULL 值的行。
+COUNT(具体字段) 
+*/
+#需求：查询公司中平均奖金率
+SELECT SUM(commission_pct) / COUNT(IFNULL(commission_pct,0)),
+AVG(IFNULL(commission_pct,0))
+FROM employees;
+
+GROUP BY 的使用
+#需求：查询各个部门的平均工资，最高工资
+SELECT department_id,AVG(salary),SUM(salary)
+FROM employees
+GROUP BY department_id
+
+#HAVING的使用 (作用：用来过滤数据的)
+#练习：查询各个部门中最高工资比10000高的部门信息
+
+#要求1：如果过滤条件中使用了聚合函数，则必须使用HAVING来替换WHERE。否则，报错。
+#要求2：HAVING 必须声明在 GROUP BY 的后面。
+#要求3：开发中，我们使用HAVING的前提是SQL中使用了GROUP BY。
+SELECT department_id,MAX(salary)
+FROM employees
+GROUP BY department_id
+HAVING MAX(salary) > 10000;
+```
+
+```sql
+-- 子查询
+-- 外查询（或主查询）、内查询（或子查询）
+/*
+- 子查询（内查询）在主查询之前一次执行完成。
+- 子查询的结果被主查询（外查询）使用 。
+- 注意事项
+  - 子查询要包含在括号内
+  - 将子查询放在比较条件的右侧
+  - 单行操作符对应单行子查询，多行操作符对应多行子查询
+  WHERE比较的就是子查询里面SELECT的内容
+  
+  子查询中的空值问题，不返回任何行
+  */
+  
+ -- 单行子查询，内查询返回单行
+ -- 单行操作符下的子查询
+#需求：谁的工资比Abel的高？
+#方式3：子查询
+SELECT last_name,salary
+FROM employees
+WHERE salary > (
+		SELECT salary
+		FROM employees
+		WHERE last_name = 'Abel'
+		);
+
+-- HAVING中的子查询，CASE中的子查询
+HAVING MIN(salary) > (SELECT MIN(salary)   …… );
+
+-- 多行子查询，内查询返回多行，使用多行比较操作符（IN，ANY，ALL）
+WHERE  salary IN
+                (SELECT   MIN(salary)
+                 FROM     employees
+                 GROUP BY department_id); 
+                 
+WHERE job_id <> 'IT_PROG'
+AND salary < ANY/ALL (
+		SELECT salary
+		FROM employees
+		WHERE job_id = 'IT_PROG'
+		);
+```
+
+
+
