@@ -532,8 +532,17 @@ WHERE id = 1;
 ② unique  (唯一性约束，允许出现多个空值：null)【可多列组合值唯一】
 ③ primary key (主键约束，唯一约束+非空约束，一定只要有一个主键约束，主键名PRIMARY，不要修改主键字段的值)【可多列复合主键】
 ④ foreign key (外键约束) (非空且唯一，必须引用/参考主表的主键或唯一约束的列)限定某个表的某个字段的引用完整性。比如：员工表的员工所在部门的选择，必须在部门表能找到对应的部分。主表（父表）：被引用的表，被参考的表。
-当创建外键约束时，系统默认会在所在的列上建立对应的普通索引，删除外键约束后，必须 手动 删除对应的索引
+当创建外键约束时，系统默认会在所在的列上建立对应的普通索引，删除外键约束后，必须手动删除对应的索引。
+约束关系是针对主从表双方的。
+外键约束有约束等级，最好是采用:     
+FOREIGN KEY (deptid) REFERENCES dept(did)  ON UPDATE CASCADE ON DELETE SET NULL
+
 ⑤ default (默认值约束)
+
+自增列 auto_increment
+某个字段的值自增，默认从1开始（包括1），一个表最多只能有一个自增长列；
+自增长列约束的列必须是键列（主键列，唯一键列）；
+自增约束的列的数据类型必须是整数类型。
 ```
 
 ```sql
@@ -544,7 +553,7 @@ WHERE id = 1;
 ③ 针对视图做DML操作，会影响到对应的基表中的数据。反之亦然。对视图数据的更改，都是通过对实际数据表里数据的操作来完成的。
 ④ 视图本身的删除，不会导致基表中数据的删除。
 ⑤ 视图的应用场景：针对于小型项目，不推荐使用视图。针对于大型项目，可以考虑使用视图。
-⑥ 视图的优点：简化查询; 控制数据的访问
+⑥ 视图的优点：简化查询; 控制数据的访问；缺点：数据表结构改变，维护不方便，加之嵌套视图
 
 #2.2 针对于多表
 CREATE OR REPLACE VIEW vu_emp_dept
@@ -659,7 +668,7 @@ SELECT email_by_id(@emp_id);
 ```
 
 ```sql
-## 变量
+-- 变量
 - 在MySQL数据库的存储过程和函数中，可以使用变量来存储查询或计算的中间结果数据，或者输出最终的结果数据。
 - 在 MySQL 数据库中，变量分为 系统变量（变量由系统定义） 以及 用户自定义变量。
 
@@ -706,14 +715,195 @@ SELECT AVG(salary) INTO @avg_sal FROM employees;
 -- 查看用户变量的值
 SELECT @avg_sal;
 
-
-
+-- 会话用户变量可以当函数返回值
+#2. 创建函数ename_salary(),根据员工姓名，返回它的工资
+DELIMITER $
+CREATE FUNCTION ename_salary(emp_name VARCHAR(15))
+RETURNS DOUBLE
+BEGIN
+	#声明变量
+	SET @sal = 0; #定义了一个会话用户变量
+	#赋值
+	SELECT salary INTO @sal FROM employees WHERE last_name = emp_name;	
+	RETURN @sal;
+END $
+DELIMITER ;
+#调用
+SELECT ename_salary('Abel');
+SELECT @sal;
 ------------------------------------------------------------------------------------
 -- 局部变量
 -- 局部变量如果没有DEFAULT子句，初始值为NULL
 -- 需要指定数据类型
+-- 位置：只能放在 BEGIN ... END 中，而且只能放在第一句
+DELIMITER //
+CREATE PROCEDURE test_var()
+
+BEGIN
+	#1、声明局部变量
+	DECLARE a INT DEFAULT 0;
+	DECLARE b INT ;
+	#DECLARE a,b INT DEFAULT 0;
+	DECLARE emp_name VARCHAR(25);
+	#2、赋值
+	SET a = 1;
+	SET b := 2;
+	SELECT last_name INTO emp_name FROM employees WHERE employee_id = 101;
+	#3、使用
+	SELECT a,b,emp_name;	
+END //
+
+DELIMITER ;
+#调用存储过程
+CALL test_var();
 ```
 
-没写：数据库、表整体的创建、增、删。一些查看修改删除，约束、变量
+```sql
+- 定义条件 是事先定义程序执行过程中可能遇到的问题， 处理程序定义了在遇到问题时应当采取的处理方式，并且保证存储过程或函数在遇到警告或错误时能继续执行。这样可以增强存储程序处理问题的能力，避免程序异常停止运行。
+- 说明：定义条件和处理程序在存储过程、存储函数中都是支持的。
+- 在存储过程中未定义条件和处理程序，且当存储过程中执行的SQL语句报错时，MySQL数据库会抛出错误，并退出当前SQL逻辑，不再向下继续执行。
+
+-- 定义条件
+定义条件就是给MySQL中的错误码命名，这有助于存储的程序代码更清晰。它将一个 错误名字 和 指定的 错误条件 关联起来。这个名字可以随后被用在定义处理程序的 DECLARE HANDLER 语句中。
+
+DECLARE 错误名称 CONDITION FOR 错误码（或错误条件）
+#方式1：使用MySQL_error_code
+DECLARE Field_Not_Be_NULL CONDITION FOR 1048;
+#方式2：使用sqlstate_value
+DECLARE Field_Not_Be_NULL CONDITION FOR SQLSTATE '23000'
+
+-- 定义处理程序 
+DECLARE 处理方式 HANDLER FOR 错误类型 处理语句
+处理方式：处理方式有3个取值：
+- CONTINUE ：表示遇到错误不处理，继续执行。
+- EXIT ：表示遇到错误马上退出。
+- UNDO ：表示遇到错误后撤回之前的操作。MySQL中暂时不支持这样的操作。
+错误类型有很多种
+
+-- 捕获mysql_error_value
+DECLARE CONTINUE HANDLER FOR 1146 SET @info = 'NO_SUCH_TABLE';
+#先定义条件，再调用
+DECLARE no_such_table CONDITION FOR 1146;
+DECLARE CONTINUE HANDLER FOR no_such_table SET @info = 'NO_SUCH_TABLE';
+```
+
+```sql
+-- 流程控制
+针对于MySQL 的流程控制语句主要有 3 类。注意：只能用于存储过程。
+- 条件判断语句 ：IF 语句和 CASE 语句
+- 循环语句 ：LOOP、WHILE 和 REPEAT 语句
+- 跳转语句 ：ITERATE 和 LEAVE 语句
+
+-- IF 使用在begin end中
+DECLARE age INT DEFAULT 20;
+	
+	IF age > 40
+		THEN SELECT '中老年';
+	ELSEIF age > 18
+		THEN SELECT '青壮年';
+	ELSEIF age > 8
+		THEN SELECT '青少年';
+	ELSE
+		SELECT '婴幼儿';
+	END IF;
+	
+-- CASE
+DELIMITER //
+CREATE PROCEDURE test_case()
+BEGIN
+	#演示1：case ... when ...then ...
+	/*
+	declare var int default 2;
+	
+	case var
+		when 1 then select 'var = 1';
+		when 2 then select 'var = 2';
+		when 3 then select 'var = 3';
+		else select 'other value';
+	end case;
+	*/
+	#演示2：case when ... then ....
+	DECLARE var1 INT DEFAULT 10;
+	CASE 
+	WHEN var1 >= 100 THEN SELECT '三位数';
+	WHEN var1 >= 10 THEN SELECT '两位数';
+	ELSE SELECT '个数位';
+	END CASE; 
+-- END [case]（如果是放在begin end中需要加上case，如果放在select后面不需要）
+END //
+DELIMITER ;
+#调用
+CALL test_case();
+
+-- LOOP 
+DELIMITER //
+CREATE PROCEDURE test_loop()
+
+BEGIN
+	#声明局部变量
+	DECLARE num INT DEFAULT 1;
+	loop_label:LOOP
+		#重新赋值
+		SET num = num + 1;
+		#可以考虑某个代码程序反复执行。（略）
+		IF num >= 10 THEN LEAVE loop_label;
+		END IF;
+	END LOOP loop_label;
+	#查看num
+	SELECT num;
+END //
+
+DELIMITER ;
+#调用
+CALL test_loop();
+
+-- WHILE
+DELIMITER //
+CREATE PROCEDURE test_while()
+
+BEGIN	
+	#初始化条件
+	DECLARE num INT DEFAULT 1;
+	#循环条件
+	WHILE num <= 10 DO
+		#循环体（略）
+		#迭代条件
+		SET num = num + 1;
+	END WHILE;
+	#查询
+	SELECT num;
+END //
+
+DELIMITER ;
+-- REPEAT
+-- REPEAT 循环首先会执行一次循环
+DELIMITER //
+CREATE PROCEDURE test_repeat()
+BEGIN
+	#声明变量
+	DECLARE num INT DEFAULT 1;
+	REPEAT
+		SET num = num + 1;
+		UNTIL num >= 10
+	END REPEAT;
+	#查看
+	SELECT num;
+END //
+DELIMITER ;
+
+-- LEAVE
+LEAVE语句：可以用在循环语句内，或者以 BEGIN 和 END 包裹起来的程序体内，表示跳出循环或者跳出程序体的操作。如果你有面向过程的编程语言的使用经验，你可以把 LEAVE 理解为 break。
+LEAVE 标记名
+
+-- ITERATE
+ITERATE语句：只能用在循环语句（LOOP、REPEAT和WHILE语句）内，表示重新开始循环，将执行顺序转到语句段开头处。如果你有面向过程的编程语言的使用经验，你可以把 ITERATE 理解为 continue，意思为“再次循环”。
+ITERATE label
+```
+
+
+
+
+
+没写：单行函数。数据库、表整体的创建、增、删。部分数据类型。一些查看修改删除，约束、变量。Check约束。游标，触发器。
 
 
