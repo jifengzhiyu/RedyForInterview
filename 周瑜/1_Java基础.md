@@ -562,3 +562,255 @@ XX:MaxMetaspaceSize=2g
 XX:+HeapDumpOnOutOfMemoryError
 -XX:HeapDumpPath=/usr/local/
 ```
+
+## 38_Java MVC架构模式
+
+- mvc是model-view-controler的简称，即模型(dao,service)-视图(交互的界面)-控制器(servlet)
+
+- 首先由客户端发送请求，控制层接收并处理请求，再通过model层与数据库进行数据交互，然后控制层将交互得到的数据转发给视图层，最后视图层将得到的数据封装成视图页面返回给客户端用户。
+
+- 好处：
+
+  1. 分层设计，实现了业务系统各个组件之间的解耦，有利于业务系统的可扩展性，可维护性。
+  2. 有利于系统的并行开发，提升开发效率。
+
+- Java EE的三层架构：
+
+  - JavaEE三层架构分为表示层、业务逻辑层、数据访问层
+
+  - 表示层（web层）：负责接收客户端用户的请求，并返回对应数据展示视图。相当于MVC中的V和C，但这里的C只进行请求的接收、处理交给业务逻辑层
+
+    业务逻辑层(service层)：对表示层传递过来的请求进行业务逻辑处理和运算，并返回处理结果给表示层
+
+    数据访问层(dao层)：与数据库进行交互，将业务逻辑层所需的数据处理与数据库数据进行同步，用于对数据库表进行增、删、改、查
+
+  - 三层架构与MVC：
+
+    两者本为不同领域下的设计模式，并无直接关联。MVC利于前后端分离。
+
+    
+
+## 39_Java单例设计模式
+
+某个类只能存在一个对象实例，减少了系统性能开销
+
+```java
+//饿汉式 在程序启动或单例模式类被加载的时候，单例模式实例就已经被创建。
+class Bank{
+   //1.私有化类的构造器
+   private Bank(){
+   }
+   
+   //2.内部创建类的对象
+   //4.静态方法只能访问类中的静态成员变量
+   private static Bank instance = new Bank();
+   
+   //3.提供公共的静态的方法，返回类的对象
+   public static Bank getInstance(){
+      return instance;
+   }
+}
+```
+
+```java
+//懒汉式 当程序第一次访问单例模式实例时才进行创建。
+class Bank{
+    private Bank() {
+    }
+    private static Bank instance = null;
+    public static Bank getInstance()  {
+        if (instance==null){
+            instance = new Bank();
+        }
+        return instance;
+    }
+}
+```
+
+- 饿汉式和懒汉式的区别：
+  - 饿汉式：
+    - 优点：线程是安全的。
+      缺点：对象加载时间过长。
+  - 懒汉式：
+    - 优点：延迟对象的创建
+      缺点：存在线程安全问题，可以使用多线程锁来解决。
+- 单例模式-应用场景
+  - 网站的计数器
+  - 应用程序的日志应用
+  - 数据库连接池
+
+## 40_Java代理设计模式
+
+- 代理模式：代理类主要负责为委托类预处理消息、把消息转发给委托类，以及事后处理消息等。
+- 代理类的对象本身并不真正实现服务，而是通过调用委托类的对象的相关方法，来提供特定的服务。
+- 我们调用的时候需要使用的是代理类的对象来调用而不是原来的被代理对象。
+
+
+静态代理有两种实现方式：通过继承实现，通过组合实现
+
+```java
+//通过继承实现静态代理
+通过继承被代理对象，重写被代理方法，可以对其进行代理。
+优点：被代理类无需实现接口
+缺点：只能代理这个类，要想代理其他类，要想代理其他类需要写新的代理方法。
+cglib动态代理就是采用这种方式对类进行代理。不过类是由cglib帮我们在内存中动态生成的。
+
+public class Tank{
+    public void move() {
+        System.out.println("Tank moving cla....");
+    }
+
+    public static void main(String[] args) {
+        new ProxyTank().move();
+    }
+}
+class ProxyTank extends Tank{
+    @Override
+    public void move() {
+        System.out.println("方法执行前...");
+        super.move();
+        System.out.println("方法执行后...");
+    }
+}
+```
+
+```java
+//通过组合实现静态代理
+定义一个 Movable 都需要实现该接口。(规范作用)。
+代理类需要将该接口作为属性，实例化时需要传入该接口的对象，这样该代理类就可以实现代理所有实现Movable的类了。
+优点：可以代理所有实现接口的类。
+缺点：被代理的类必须实现接口。
+JDK动态代理就是采用的这种方式实现的。同样的代理类是由JDK自动帮我们在内存生成的。
+public class Tank implements Movable{
+    @Override
+    public void move() {
+        System.out.println("Tank moving cla....");
+    }
+
+    public static void main(String[] args) {
+        Tank tank = new Tank();
+        new LogProxy(tank).move();
+    }
+}
+
+class LogProxy implements Movable{
+    private Movable movable;
+    public LogProxy(Movable movable) {
+        this.movable = movable;
+    }
+    @Override
+    public void move() {
+        System.out.println("方法执行前....");
+        movable.move();
+        System.out.println("方法执行后....");
+    }
+}
+interface Movable {
+    void move();
+}
+```
+
+动态代理与静态代理不同的是，这个代理类我们自己定义的。而动态代理这个代理类是根据我们的提示动态生成的。
+
+动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。
+
+实现动态代理有几种方案：JDK动态代理，CGLIB动态代理
+
+```java
+//JDK动态代理
+通过java提供的Proxy类帮我们创建代理对象。
+优点：可以生成所有实现接口的代理对象
+缺点：JDK反射生成代理必须面向接口, 这是由Proxy的内部实现决定的。生成代理的方法中你必须指定实现类的接口，它根据这个接口来实现代理类生成的所实现的接口。
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+//使用jdk的动态代理
+public class Tank implements Movable{
+    @Override
+    public void move() {
+        System.out.println("Tank moving cla....");
+    }
+
+    public static void main(String[] args) {
+        Tank tank = new Tank();
+        // reflection 反射 通过二进制字节码分析类的属性和方法
+
+        //newProxyInstance: 创建代理对象
+        // 参数一: 被代理类对象
+        // 参数二：接口类对象  被代理对象所实现的接口
+        // 参数三：调用处理器。 被调用对象的那个方法被调用后该如何处理
+        Movable o = (Movable)Proxy.newProxyInstance(Tank.class.getClassLoader()
+                ,new Class[]{Movable.class}
+                ,new LogProxy(tank));
+        o.move();
+    }
+}
+
+class LogProxy implements InvocationHandler {
+    private Movable movable;
+
+    public LogProxy(Movable movable) {
+        this.movable = movable;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println("方法:"+method.getName()+"()执行前");
+        Object invoke = method.invoke(movable, args);  // 此处相当于 movable.move()
+        System.out.println("方法:"+method.getName()+"()执行后");
+        return invoke;
+    }
+}
+
+interface Movable {
+    void move();
+}
+```
+
+```java
+//cglib动态代理
+CGLib(Code Generate Library) 与JDK动态代理不同的是，cglib生成代理是 被代理对象的子类。因此它拥有继承方法实现静态代理的优点：不需要被代理对象实现某个接口。
+缺点：不能给final类生成代理，因为final类无法拥有子类。
+
+使用cglib生成代理类也很简单，只要指定父类和回调方法即可
+首先需要引入依赖
+<dependency>
+     <groupId>cglib</groupId>
+     <artifactId>cglib</artifactId>
+     <version>3.2.12</version>
+ </dependency>
+
+ import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+import java.lang.reflect.Method;
+
+public class Main {
+    public static void main(String[] args) {
+        Enhancer enhancer = new Enhancer(); // 增强者
+        enhancer.setSuperclass(Tank.class); // 指定父类
+        enhancer.setCallback(new TimeMethodInterceptor()); // 当被代理对象的方法调用的时候会调用 该对象的intercept
+        Tank tank = (Tank)enhancer.create();  // 动态代理的生成
+        tank.move();  // 生成之后会调用
+    }
+}
+
+class TimeMethodInterceptor implements MethodInterceptor{
+    @Override
+    public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+        System.out.println("生成的类名"+o.getClass().getName());
+        System.out.println("生成的类的父类"+o.getClass().getSuperclass().getName());
+        System.out.println("方法执行前，被代理的方法"+method.getName());
+        Object result = null;
+        result = methodProxy.invokeSuper(o, objects);
+        System.out.println("方法执行后，被代理的方法"+method.getName());
+        return result;
+    }
+}
+class Tank{
+    public void move(){
+        System.out.println("Tank moving clacla....");
+    }
+}
+```
+
