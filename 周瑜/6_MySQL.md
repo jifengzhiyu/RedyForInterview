@@ -111,7 +111,8 @@ MySQL是一个开放源代码的**关系型数据库管理系统**，可以定�
 
 - 在业务系统中，除了使用主键进行的查询，其他的都会在测试库上测试其耗时，慢查询的统计主要由运维在做，会定期将业务中的慢查询反馈给我们。
 - 优化
-  - 首先分析语句，可能是加载了许多结果中并不需要的列，查了多余的列就去掉。
+  - 检查是否走了索引，如果没有则利用索引
+  - 可能是加载了许多结果中并不需要的列，查了多余的列就去掉。
   - 分析语句的**执行计划**，获得使用索引的情况，修改语句使得尽可能命中索引。
   - 考虑表中的数据量是否太大，如果是的话可以进行横向或者纵向的分表。
 
@@ -176,43 +177,43 @@ MySQL是一个开放源代码的**关系型数据库管理系统**，可以定�
   1. 乐观锁：并不会真正的去锁某行记录，而是通过一个版本号来实现的
   2. 悲观锁：上面所的锁都是悲观锁
 
-## Mysql慢查询该如何优化？
+## 14_简述MySQL中索引类型及对数据库的性能的影响
 
-1.检查是否走了索引，如果没有则优化SQL利用索
-2.检查所利用的索引，是否是最优索引
-3.检查所查字段是否都是必须的，是否查询了过多字段，查出了多余数据
-4.检查表中数据是否过多，是否应该进行分库分表了
-5,检查数据库实例所在机器的性能配置，是否太低，是否可以适当增加资源
+- 普通索引：允许被索引的**数据列**包含重复的值。
+- 唯一索引：保证数据记录的唯一性。
+- 主键：是特殊的唯一索引，在一张表中只能定义一个主键索引，用于**唯一标识一条记录**，使用关键字PRIMARY KEY。
+- **联合索引**：索引可以覆盖多个数据列，如像INDEX(columnA,columnB)索引。
+- 全文索引：比如文章找词，但是一般不用，用ES技术，建立**倒排索引**，可以极大的提升检索效率，解决判断**字段是否包含**的问题，是目前搜索引擎使用的一 种关键技术。
 
-## 简述mysql中索引类型及对数据库的性能的影响
+索引对数据库的影响：
 
-普通索引：允许被索引的数据列包含重复的值。
-唯一索引：可以保证数据记录的唯一性。
-主键：是一种特殊的唯一索引，在一张表中只能定义一个主键索引，主键用于唯一标识一条记录，使用关键字PRIMARY KEY来创建。
-联合索引：索引可以覆盖多个数据列，如像INDEX(columnA,columnB)索引。
-全文索引：比如文章找词，但是一般不用mysql读功能，用ES技术。通过建立倒排索引，可以极大的提升检索效率，解决判断字段是否包含的问题，是目前搜索引擎使用的一 种关键技术。可以通过ALTER TABLE table name ADD FULLTEXT(column):创建全文索引
-
-索引可以极大的提高数据的查询速度。
-通过使用索引，可以在查询的过程中，使用优化隐藏器，提高系统的性能。
-
-但是会降低插入、删除、更新表的速度，因为在执行这些写操作时，还要操作索引文件
-索引需要占物理空间，除了数据表占数据空间之外，每一个索引还要占一定的物理空间，如果要建立聚簇索引，那 么需要的空间就会更大，如果非聚集索引很多，一旦聚集索引改变，那么所有非聚集索引都会跟着变。
+- 优点：
+  - 索引可以极大的提高数据的查询速度。
+  - 通过使用索引，可以在查询的过程中，使用**优化隐藏器**，提高**系统的性能**。
+- 缺点：
+  - 会降低插入、删除、更新表的速度，因为在执行这些写操作时，还要操作索引文件
+  - 索引需要占物理空间，如果要建立聚簇索引，那么需要的空间就会更大，如果非聚簇索引很多，一旦聚簇索引改变，那么所有非聚簇索引都会跟着变。
 
 ----
 
-## 书写规范
+## sql语句整理
 
-- 字符串型和日期时间类型的数据可以使用单引号（' '）表示
+### 书写规范
+
+- **字符串型**和**日期时间**类型的数据可以使用**单引号**（' '）表示
 - 列的别名，尽量使用双引号（" "），而且不建议省略as 
 - 每条命令以 ; （navicat）或 \g 或 \G 结束（terminal）
-
 - **推荐采用统一的书写规范：**
   - 数据库名、表名、表别名、字段名、字段别名等都小写
   - SQL 关键字、函数名、绑定变量等都大写
 
+### 常用sql关键词
+
 ```sql
 -- 列的别名
 -- 列的别名不能在WHERE中使用。
+
+-- AS
 SELECT employee_id emp_id,
 last_name AS lname,
 department_id "部门id",
@@ -223,9 +224,26 @@ FROM employees;
 SELECT DISTINCT department_id 
 FROM employees;
 
--- 过滤数据
--- WHERE子句紧随FROM子句
--- WHERE 需要声明在FROM后，ORDER BY之前。
+-- 排序
+-- 如果没有使用排序操作，默认情况下查询返回的数据是按照添加数据的顺序显示的。
+#练习：显示员工信息，按照department_id的降序排列，salary的升序排列
+-- 默认按照升序排列。
+SELECT employee_id,salary,department_id
+FROM employees
+ORDER BY department_id DESC,salary ASC;
+
+-- 分页
+-- LIMIT [位置偏移量,] 行数
+-- 前10条记录： 
+SELECT * FROM 表名 LIMIT 0,10; 
+-- （当前页数-1）* 每页条数，每页条数
+LIMIT(PageNo - 1)*PageSize,PageSize;
+# 需求2：每页显示20条记录，此时显示第2页
+SELECT employee_id,last_name
+FROM employees
+LIMIT 20,20;
+
+-- sql基本关键词顺序
 -- LIMIT 子句必须放在整个SELECT语句的最后！
 SELECT employee_id,last_name,salary
 FROM employees
@@ -243,30 +261,12 @@ HAVING 包含聚合函数的过滤条件
 ORDER BY ....,...(ASC / DESC )
 LIMIT ...,....
 
-#4.2 SQL语句的执行过程：
+#SQL语句的执行过程：
 #FROM ...,...-> ON -> (LEFT/RIGNT  JOIN) -> WHERE -> GROUP BY -> HAVING -> SELECT -> DISTINCT -> 
 # ORDER BY -> LIMIT
-
--- 排序
--- 如果没有使用排序操作，默认情况下查询返回的数据是按照添加数据的顺序显示的。
-#练习：显示员工信息，按照department_id的降序排列，salary的升序排列
--- 默认按照升序排列。
-SELECT employee_id,salary,department_id
-FROM employees
-ORDER BY department_id DESC,salary ASC;
-
--- 分页
--- LIMIT [位置偏移量,] 行数
--- 前10条记录： 
-SELECT * FROM 表名 LIMIT 0,10; 
--- （当前页数-1）* 每页条数，每页条数
-SELECT * FROM table 
-LIMIT(PageNo - 1)*PageSize,PageSize;
-# 需求2：每页显示20条记录，此时显示第2页
-SELECT employee_id,last_name
-FROM employees
-LIMIT 20,20;
 ```
+
+### 多表查询
 
 ```sql
 -- 多表查询
@@ -282,10 +282,9 @@ SELECT emp.employee_id,emp.last_name,mgr.employee_id,mgr.last_name
 FROM employees emp ,employees mgr
 WHERE emp.`manager_id` = mgr.`employee_id`;
 
--- JOIN ...ON
--- 它的嵌套逻辑类似我们使用的 FOR 循环
--- 超过三个表禁止 join。需要 join 的字段，数据类型保持绝对一致；多表关联查询时， 保证被关联的字段需要有索引。
-#SQL99语法实现内连接：
+-- (LEFT)JOIN ...ON
+-- 超过三个表禁止join。需要 join 的字段，数据类型保持绝对一致；多表关联查询时， 保证被关联的字段需要有索引。
+#内连接：
 -- 连续使用
 SELECT last_name,department_name,city
 FROM employees e JOIN departments d
@@ -296,9 +295,10 @@ ON d.`location_id` = l.`location_id`;
 SELECT last_name,department_name
 FROM employees e LEFT JOIN departments d
 ON e.`department_id` = d.`department_id`;
+
 #满外连接：mysql不支持FULL OUTER JOIN
 
--- **合并查询结果** 利用UNION关键字，可以给出多条SELECT语句，并将它们的结果组合成单个结果集。合并时，两个表对应的列数和数据类型必须相同，并且相互对应。各个SELECT语句之间使用UNION或UNION ALL关键字分隔。
+-- UNION关键字，给多条SELECT语句，并将它们的结果组合成单个结果集。合并时，两个表对应的列数和数据类型必须相同，并且相互对应。
 -- UNION 返回两个查询的结果集的并集，去除重复记录
 -- UNION ALL 返回两个查询的结果集的并集。对于两个结果集的重复部分，不去重。
 # 左下图：满外连接
@@ -315,6 +315,8 @@ WHERE e.`department_id` IS NULL;
 
 ![image-20221007171322726](Pic/image-20221007171322726.png)
 
+### 运算符
+
 ```sql
 -- 所有运算符或列值遇到null值，运算的结果都为null
 
@@ -322,32 +324,32 @@ WHERE e.`department_id` IS NULL;
 -- 比较的结果为真则返回1，比较的结果为假则返回0，其他情况则返回NULL。
 -- 数字用符号 字段用关键字
 
--- 等于运算符 一个等号;
--- 等于运算符，如果等号两边的值、字符串或表达式中有一个为NULL，则比较结果为NULL。
--- 安全等于运算符（<=>）与等于运算符（=）的作用是相似的， 唯一的区别是‘<=>’可以用来对NULL进行判断。在两个操作数均为NULL时，其返回值为1，而不为NULL；当一个操作数为NULL时，其返回值为0，而不为NULL。
+-- 等于运算符 一个等号 =
+-- 安全等于运算符（<=>）可以用来对NULL进行判断。在两个操作数均为NULL时，其返回值为1，而不为NULL；当一个操作数为NULL时，其返回值为0，而不为NULL。
 
 BETWEEN运算符使用的格式通常为 WHERE C (NOT) BETWEEN A AND B，此时，当C大于或等于A，并且C小于或等于B时，结果为1，否则结果为0。 
 
 -- IN运算符
--- IN运算符用于判断给定的值是否是IN列表中的一个值，如果是则返回1，否则返回0。如果给定的值为NULL则结果为NULL。 
+-- 给定的值是否是IN列表中的一个值，如果是则返回1，否则返回0。如果给定的值为NULL则结果为NULL。 
 WHERE department_id (NOT) IN (NULL,10,20,30);
 
--- LIKE运算符主要用来匹配字符串，通常用于模糊匹配，如果满足条件则返回1，否则返回0。如果给定的值或者匹配条件为NULL，则返回结果为NULL。 
+-- LIKE运算符主要用来匹配字符串，通常用于模糊匹配，如果满足条件则返回1，否则返回0。
 /*
 通配符
 “%”：不确定个数的字符0个或多个字符。 
 “_”：只能匹配一个字符。
 */
 #练习：查询第3个字符是'a'的员工信息
-SELECT last_name
-FROM employees
 WHERE last_name LIKE '__a%';
 ------------------------------------------------------------------------------------------------------
 -- 逻辑运算符
 逻辑非（NOT或!）运算符表示当给定的值为0时返回1；当给定的值为非0值时返回0；当给定的值为NULL时，返回NULL。 
 逻辑与（AND或&&）运算符是当给定的所有值均为非0值，并且都不为NULL时，返回1；当给定的一个值或者多个值为0时则返回0；否则返回NULL。 
-逻辑或（OR或||）运算符是当给定的值都不为NULL，并且任何一个值为非0值时，则返回1，否则返回0；当一个值为NULL，并且另一个值为非0值时，返回1，否则返回NULL；当两个值都为NULL时，返回NULL。 
+逻辑或（OR或||）运算符是当给定的值都不为NULL，并且任何一个值为非0值时，则返回1，否则返回0；
+当一个值为NULL，并且另一个值为非0值时，返回1，否则返回NULL；当两个值都为NULL时，返回NULL。 
 ```
+
+### 函数
 
 ```sql
 -- 函数
@@ -364,44 +366,39 @@ IF(value,value1,value2)如果value的值为TRUE，返回value1，否则返回val
 IFNULL(value1, value2)如果value1不为NULL，返回value1，否则返回value2
 */
 
--- 聚合函数
-AVG / SUM ：只适用于数值类型的字段（或变量）
--- 不能用于日期，字符串
-SELECT AVG(salary),SUM(salary),AVG(salary) * 107
-FROM employees;
-
+-- 聚合函数一般要起别名
+AVG / SUM ：只适用于数值类型的字段（或变量）,不能用于日期，字符串
 MAX / MIN :适用于任意数据类型
--- 组函数一般要起别名
+
 SELECT MAX(salary) max_sal ,MIN(salary) mim_sal,AVG(salary) avg_sal,SUM(salary) sum_sal
 FROM employees;
 
 /*
-COUNT 计算指定字段在查询结构中出现的个数（不包含NULL值的）
+COUNT 计算指定字段在查询结构中出现的个数
 count(*)会统计值为 NULL 的行，而 count(列名)不会统计此列为 NULL 值的行。
-COUNT(具体字段) 
 */
 #需求：查询公司中平均奖金率
 SELECT SUM(commission_pct) / COUNT(IFNULL(commission_pct,0)),
-AVG(IFNULL(commission_pct,0))
 FROM employees;
 
-GROUP BY 的使用
+-- GROUP BY 的使用
 #需求：查询各个部门的平均工资，最高工资
 SELECT department_id,AVG(salary),SUM(salary)
 FROM employees
 GROUP BY department_id
 
 #HAVING的使用 (作用：用来过滤数据的)
-#练习：查询各个部门中最高工资比10000高的部门信息
-
 #要求1：如果过滤条件中使用了聚合函数，则必须使用HAVING来替换WHERE。否则，报错。
 #要求2：HAVING 必须声明在 GROUP BY 的后面。
-#要求3：开发中，我们使用HAVING的前提是SQL中使用了GROUP BY。
+
+#练习：查询各个部门中最高工资比10000高的部门信息
 SELECT department_id,MAX(salary)
 FROM employees
 GROUP BY department_id
 HAVING MAX(salary) > 10000;
 ```
+
+### 子查询
 
 ```sql
 -- 子查询
@@ -411,8 +408,7 @@ HAVING MAX(salary) > 10000;
 - 子查询的结果被主查询（外查询）使用 。
 - 注意事项
   - 子查询要包含在括号内
-  - 将子查询放在比较条件的右侧
-  - 单行操作符对应单行子查询，多行操作符对应多行子查询
+  - 将子查询放在 比较条件 的右侧
   WHERE比较的就是子查询里面SELECT的内容
   
   子查询中的空值问题，不返回任何行
@@ -430,7 +426,7 @@ WHERE salary > (
 		WHERE last_name = 'Abel'
 		);
 
--- HAVING中的子查询，CASE中的子查询
+-- HAVING中的子查询
 HAVING MIN(salary) > (SELECT MIN(salary)   …… );
 
 -- 多行子查询，内查询返回多行，使用多行比较操作符（IN，ANY，ALL）
@@ -460,7 +456,7 @@ WHERE salary > (
 		
 -- EXISTS 与 NOT EXISTS关键字
 -- EXISTS关键字表示如果存在某种条件，则返回TRUE，否则返回FALSE。
-#方式3：使用EXISTS（能用IN的考虑使用EXISTS，能用NOT IN的考虑使用NOT EXISTS
+#方式3：使用EXISTS（能用IN的考虑使用EXISTS，能用NOT IN的考虑使用NOT EXISTS）
 SELECT employee_id,last_name,job_id,department_id
 FROM employees e1
 WHERE EXISTS (
@@ -471,21 +467,19 @@ WHERE EXISTS (
 	     );
 ```
 
+### 提交与回滚
+
 ```sql
-/*
 COMMIT 和 ROLLBACK
 # COMMIT:提交数据。一旦执行COMMIT，则数据就被永久的保存在了数据库中，意味着数据不可以回滚。
 # ROLLBACK:回滚数据。一旦执行ROLLBACK,则可以实现数据的回滚。回滚到最近的一次COMMIT之后。
 
-① DDL（数据定义语言，CREATE 、 DROP 、 ALTER）的操作一旦执行成功，就不可回滚。指令SET autocommit = FALSE 对DDL操作失效。(因为在执行完DDL
-    操作之后，一定会执行一次COMMIT。而此COMMIT操作不受SET autocommit = FALSE影响的。)
-    
-    DDL操作要么成功要么回滚，DDL的原子化
-  
-② DML（数据操作语言，INSERT 、 DELETE 、 UPDATE 、 SELECT）的操作默认情况，一旦执行，也是不可回滚的。但是，如果在执行DML之前，执行了 
-    SET autocommit = FALSE，则执行的DML操作就可以实现回滚。
-*/
+① DDL（数据定义语言，CREATE 、 DROP 、 ALTER）的操作一旦执行成功，就不可回滚。指令SET autocommit = FALSE 对DDL操作失效。(因为在执行完DDL操作之后，一定会执行一次COMMIT。而此COMMIT操作不受SET autocommit = FALSE影响的。)
+  DDL操作要么成功要么回滚，DDL的原子化
+② DML（数据操作语言，INSERT 、 DELETE 、 UPDATE 、 SELECT）的操作默认情况，一旦执行，也是不可回滚的。但是，如果在执行DML之前，执行了 SET autocommit = FALSE，则执行的DML操作就可以实现回滚。
 ```
+
+### 增删改
 
 ```sql
 -- 数据处理之增删改
@@ -495,9 +489,8 @@ VALUES
 (4,'Jim',5000),
 (5,'张俊杰',5500);
 
-#方式2：将查询结果插入到表中
+#将查询结果插入到表中
 INSERT INTO emp1(id,NAME,salary,hire_date)
-#查询语句
 SELECT employee_id,last_name,salary,hire_date FROM ……
 
 #2. 更新数据 （或修改数据）
@@ -511,23 +504,27 @@ DELETE FROM emp1
 WHERE id = 1;
 ```
 
+### 数据类型
+
 ```sql
 整形常用 INT
 其他数值常用 DECIMAL 定点数类型，因为浮点类型有误差
 简短 或 固定长度用CHAR，其他VARCHAR
 ```
 
+### 约束
+
 ```sql
 约束
 ① not null (非空约束)【单列】
 ② unique  (唯一性约束，允许出现多个空值：null)【可多列组合值唯一】
 ③ primary key (主键约束，唯一约束+非空约束，一定只要有一个主键约束，主键名PRIMARY，不要修改主键字段的值)【可多列复合主键】
-④ foreign key (外键约束) (非空且唯一，必须引用/参考主表的主键或唯一约束的列)限定某个表的某个字段的引用完整性。比如：员工表的员工所在部门的选择，必须在部门表能找到对应的部分。主表（父表）：被引用的表，被参考的表。
+④ foreign key (外键约束) (非空且唯一，必须引用/参考主表的主键或唯一约束的列)限定某个表的某个字段的引用完整性。
+比如：员工表的员工所在部门的选择，必须在部门表能找到对应的部分。主表（父表）：被引用的表，被参考的表。
 当创建外键约束时，系统默认会在所在的列上建立对应的普通索引，删除外键约束后，必须手动删除对应的索引。
 约束关系是针对主从表双方的。
 外键约束有约束等级，最好是采用:     
 FOREIGN KEY (deptid) REFERENCES dept(did)  ON UPDATE CASCADE ON DELETE SET NULL
-
 ⑤ default (默认值约束)
 
 自增列 auto_increment
@@ -536,41 +533,38 @@ FOREIGN KEY (deptid) REFERENCES dept(did)  ON UPDATE CASCADE ON DELETE SET NULL
 自增约束的列的数据类型必须是整数类型。
 ```
 
+### 视图
+
 ```sql
 -- 视图
 ① 视图，可以看做是一个虚拟表，本身是不存储数据的。
-视图的本质，就可以看做是存储起来的SELECT语句
-② 视图中SELECT语句中涉及到的表，称为基表
-③ 针对视图做DML操作，会影响到对应的基表中的数据。反之亦然。对视图数据的更改，都是通过对实际数据表里数据的操作来完成的。
+视图的本质，就可以看做是存储起来的 SELECT 语句
+② 视图中 SELECT 语句中涉及到的表，称为基表
+③ 针对视图做DML操作，会影响到对应的基表中的数据,反之亦然。对视图数据的更改，都是通过对实际数据表里数据的操作来完成的，一般不通过视图更改数据。
 ④ 视图本身的删除，不会导致基表中数据的删除。
 ⑤ 视图的应用场景：针对于小型项目，不推荐使用视图。针对于大型项目，可以考虑使用视图。
-⑥ 视图的优点：简化查询; 控制数据的访问；缺点：数据表结构改变，维护不方便，加之嵌套视图
+⑥ 视图的优点：简化查询; 控制数据的访问；
+缺点：数据表结构改变，维护不方便，加之嵌套视图
 
-#2.2 针对于多表
+#针对于多表
 CREATE OR REPLACE VIEW vu_emp_dept
 AS
 SELECT e.employee_id,e.department_id,d.department_name
 FROM emps e JOIN depts d
 ON e.`department_id` = d.`department_id`;
 -- 当我们创建好一张视图之后，还可以在它的基础上继续创建视图。
-#6. 删除视图
+#删除视图
 DROP VIEW IF EXISTS vu_emp2,vu_emp3;
 ```
+
+### 存储过程、存储函数
 
 ![image-20220627002125766](Pic/image-20220627002125766.png)
 
 ```sql
-存储过程
+-- 存储过程
 存储过程预先存储在 MySQL 服务器上，需要执行的时候，客户端只需要向服务器端发出调用存储过程的命令，服务器端就可以把预先存储好的这一系列 SQL 语句全部执行。
-【强制】禁止使用存储过程，存储过程难以调试和扩展，更没有移植性。
-
-INOUT ：当前参数既可以为输入参数，也可以为输出参数。
-characteristics 表示创建存储过程时指定的对存储过程的约束条件，其取值信息如下：
-1. BEGIN…END：BEGIN…END 中间包含了多个语句，每个语句都以（;）号为结束符。 
-2. DECLARE：DECLARE 用来声明变量，使用的位置在于 BEGIN…END 语句中间，而且需要在其他语句使用之前进行变量的声明。
-3. SET：赋值语句，用于对变量进行赋值。 
-4. SELECT… INTO：把从数据表中查询的结果存放到变量中，也就是为变量赋值。
-“DELIMITER //”语句的作用是将MySQL的结束符设置为//，并以“END //”结束存储过程。存储过程定义完毕之后再使用“DELIMITER ;”恢复默认结束符。DELIMITER也可以指定其他符号作为结束符。
+阿里【强制】禁止使用存储过程，存储过程难以调试和扩展，更没有移植性。
 
 DELIMITER $
 CREATE PROCEDURE 存储过程名(IN|OUT|INOUT 参数名 参数类型,...)
@@ -581,34 +575,35 @@ sql语句2;
 END $
 DELIMITER ;
 
-#类型4：带 IN 和 OUT
-#举例6：创建存储过程show_someone_salary2()，查看“emps”表的某个员工的薪资，
+INOUT ：当前参数既可以为输入参数，也可以为输出参数。
+characteristics 表示创建存储过程时指定的对存储过程的约束条件
+BEGIN… END： BEGIN… END 中间包含了多个语句，每个语句都以（;）号为结束符。 
+SET：赋值语句，用于对变量进行赋值。 
+SELECT… INTO：把从数据表中查询的结果存放到变量中，也就是为变量赋值。
+“ DELIMITER //”语句的作用是将MySQL的结束符设置为//，并以“ END //”结束存储过程。存储过程定义完毕之后再使用“DELIMITER ;”恢复默认结束符。 DELIMITER也可以指定其他符号作为结束符。
+
+#带 IN 和 OUT
+#创建存储过程show_someone_salary2()，查看“emps”表的某个员工的薪资，
 #并用IN参数empname输入员工姓名，用OUT参数empsalary输出员工薪资。
 DELIMITER //
-
 CREATE PROCEDURE show_someone_salary2(IN empname VARCHAR(20),OUT empsalary DECIMAL(10,2))
 BEGIN
 	SELECT salary INTO empsalary
 	FROM employees
 	WHERE last_name = empname;
 END //
-
 DELIMITER ;
 
 #调用
 SET @empname = 'Abel';
 CALL show_someone_salary2(@empname,@empsalary);
-
 SELECT @empsalary;
 ----------------------------------------------------------------------
-#类型5：带 INOUT
-#举例7：创建存储过程show_mgr_name()，查询某个员工领导的姓名，并用INOUT参数“empname”输入员工姓名，
-#输出领导的姓名。
+#带 INOUT
+#创建存储过程show_mgr_name()，查询某个员工领导的姓名，并用INOUT参数“empname”输入员工姓名，输出领导的姓名。
 DELIMITER $
-
 CREATE PROCEDURE show_mgr_name(INOUT empname VARCHAR(25))
 BEGIN
-
 	SELECT last_name INTO empname
 	FROM employees
 	WHERE employee_id = (
@@ -617,32 +612,29 @@ BEGIN
 				WHERE last_name = empname
 				);
 END $
-
 DELIMITER ;
 
 #调用
 SET @empname := 'Abel';
 CALL show_mgr_name(@empname);
-
 SELECT @empname;
 ```
 
 ```sql
 -- 存储函数
-存储函数是 用户自己定义 的，而内部函数是MySQL 的开发者定义的。
+存储函数是用户自己定义的，而内部函数是MySQL的开发者定义的。
 FUNCTION中总是默认为IN参数。(因为存储函数一定存在return语句)
 
+DELIMITER //
 CREATE FUNCTION 函数名(参数名 参数类型,...) 
 RETURNS 返回值类型 
 [characteristics ...]
-BEGIN函数体 
+BEGIN 函数体 
 #函数体中肯定有 RETURN 语句 
-END
+END //
+DELIMITER ;
 
-#举例2：创建存储函数，名称为email_by_id()，参数传入emp_id，该函数查询emp_id的email，
-#并返回，数据类型为字符串型。
-#创建函数前执行此语句，保证函数的创建会成功
-SET GLOBAL log_bin_trust_function_creators = 1;
+#举例2：创建存储函数，名称为email_by_id()，参数传入emp_id，该函数查询emp_id的email，并返回，数据类型为字符串型。
 #声明函数
 DELIMITER //
 CREATE FUNCTION email_by_id(emp_id INT)
@@ -651,21 +643,25 @@ BEGIN
 	RETURN (SELECT email FROM employees WHERE employee_id = emp_id);
 END //
 DELIMITER ;
+
 #调用
 SELECT email_by_id(101);
-
 SET @emp_id := 102;
 SELECT email_by_id(@emp_id);
 ```
+
+### 变量
 
 ```sql
 -- 变量
 - 在MySQL数据库的存储过程和函数中，可以使用变量来存储查询或计算的中间结果数据，或者输出最终的结果数据。
 - 在 MySQL 数据库中，变量分为 系统变量（变量由系统定义） 以及 用户自定义变量。
 
-系统变量分为全局系统变量（需要添加 global 关键字）以及会话系统变量（需要添加 session 关键字），有时也把全局系统变量简称为全局变量，有时也把会话系统变量称为local变量。如果不写，默认会话级别。静态变量（在 MySQL 服务实例运行期间它们的值不能使用 set 动态修改）属于特殊的全局系统变量。
+系统变量分为全局系统变量/全局变量（需要添加 global 关键字）以及会话系统变量/local变量（需要添加 session 关键字）。
+如果不写，默认会话级别。
+静态变量（在 MySQL 服务实例运行期间它们的值不能使用 set 动态修改）属于特殊的全局系统变量。
 每一个MySQL客户机成功连接MySQL服务器后，都会产生与之对应的会话。这些会话系统变量的初始值是全局系统变量值的复制。
-MySQL 中的系统变量以 两个“@” 开头，其中“@@global”仅用于标记全局系统变量，“@@session”仅用于标记会话系统变量。“@@”首先标记会话系统变量，如果会话系统变量不存在，则标记全局系统变量。
+MySQL 中的系统变量以两个“@” 开头，其中“@@global”仅用于标记全局系统变量，“@@session”仅用于标记会话系统变量。“@@”首先标记会话系统变量，如果会话系统变量不存在，则标记全局系统变量。
 
 #查看指定的系统变量的值
 SELECT @@global.变量名;
@@ -676,19 +672,19 @@ SELECT @@变量名;
 
 -- 修改系统变量的值
 #方式1：
-SET @@global.变量名=变量值;
+SET @@global.变量名 = 变量值;
 #方式2：
-SET GLOBAL 变量名=变量值;
+SET GLOBAL 变量名 = 变量值;
 
 #为某个会话变量赋值 
 #针对于当前会话是有效的，一旦结束会话，重新建立起新的会话，就失效了。
 #方式1：
-SET @@session.变量名=变量值;
+SET @@session.变量名 = 变量值;
 #方式2：
-SET SESSION 变量名=变量值;
+SET SESSION 变量名 = 变量值;
 --------------------------------------------------------------------------------
-MySQL 中的用户变量以 一个“@” 开头。根据作用范围不同，又分为会话用户变量和局部变量。
-局部变量：只在 BEGIN 和 END 语句块中有效。局部变量只能在存储过程和函数中使用。
+MySQL 中的用户变量以一个“@” 开头。根据作用范围不同，又分为会话用户变量和局部变量。
+局部变量：只在 BEGIN 和 END 语句块中有效。局部变量只能在 存储过程和函数 中使用。
 
 -- 会话用户变量
 #会话用户变量不用声明数据类型
@@ -729,7 +725,6 @@ SELECT @sal;
 -- 位置：只能放在 BEGIN ... END 中，而且只能放在第一句
 DELIMITER //
 CREATE PROCEDURE test_var()
-
 BEGIN
 	#1、声明局部变量
 	DECLARE a INT DEFAULT 0;
@@ -743,19 +738,21 @@ BEGIN
 	#3、使用
 	SELECT a,b,emp_name;	
 END //
+DELIMITER;
 
-DELIMITER ;
 #调用存储过程
 CALL test_var();
 ```
 
+### 定义条件、处理程序
+
 ```sql
-- 定义条件 是事先定义程序执行过程中可能遇到的问题， 处理程序定义了在遇到问题时应当采取的处理方式，并且保证存储过程或函数在遇到警告或错误时能继续执行。这样可以增强存储程序处理问题的能力，避免程序异常停止运行。
+- 定义条件事先定义程序执行过程中可能遇到的问题， 处理程序定义了在遇到问题时应当采取的处理方式，并且保证存储过程或函数在遇到警告或错误时能继续执行。这样可以增强存储程序处理问题的能力，避免程序异常停止运行。
 - 说明：定义条件和处理程序在存储过程、存储函数中都是支持的。
 - 在存储过程中未定义条件和处理程序，且当存储过程中执行的SQL语句报错时，MySQL数据库会抛出错误，并退出当前SQL逻辑，不再向下继续执行。
 
 -- 定义条件
-定义条件就是给MySQL中的错误码命名，这有助于存储的程序代码更清晰。它将一个 错误名字 和 指定的 错误条件 关联起来。这个名字可以随后被用在定义处理程序的 DECLARE HANDLER 语句中。
+定义条件就是给MySQL中的错误码命名，这有助于存储的程序代码更清晰。它将一个 错误名字 和 指定的错误条件 关联起来。这个名字可以随后被用在定义处理程序的 DECLARE HANDLER 语句中。
 
 DECLARE 错误名称 CONDITION FOR 错误码（或错误条件）
 #方式1：使用MySQL_error_code
@@ -769,7 +766,6 @@ DECLARE 处理方式 HANDLER FOR 错误类型 处理语句
 - CONTINUE ：表示遇到错误不处理，继续执行。
 - EXIT ：表示遇到错误马上退出。
 - UNDO ：表示遇到错误后撤回之前的操作。MySQL中暂时不支持这样的操作。
-错误类型有很多种
 
 -- 捕获mysql_error_value
 DECLARE CONTINUE HANDLER FOR 1146 SET @info = 'NO_SUCH_TABLE';
@@ -778,16 +774,17 @@ DECLARE no_such_table CONDITION FOR 1146;
 DECLARE CONTINUE HANDLER FOR no_such_table SET @info = 'NO_SUCH_TABLE';
 ```
 
+### 流程控制
+
 ```sql
 -- 流程控制
 针对于MySQL 的流程控制语句主要有 3 类。注意：只能用于存储过程。
-- 条件判断语句 ：IF 语句和 CASE 语句
-- 循环语句 ：LOOP、WHILE 和 REPEAT 语句
-- 跳转语句 ：ITERATE 和 LEAVE 语句
+- 条件判断语句 ： IF 语句和 CASE 语句
+- 循环语句 ： LOOP、 WHILE 和 REPEAT 语句
+- 跳转语句 ： ITERATE 和 LEAVE 语句
 
 -- IF 使用在begin end中
 DECLARE age INT DEFAULT 20;
-	
 	IF age > 40
 		THEN SELECT '中老年';
 	ELSEIF age > 18
@@ -826,10 +823,10 @@ DELIMITER ;
 #调用
 CALL test_case();
 
+-------------------------------------------------------------------------------------
 -- LOOP 
 DELIMITER //
 CREATE PROCEDURE test_loop()
-
 BEGIN
 	#声明局部变量
 	DECLARE num INT DEFAULT 1;
@@ -843,7 +840,6 @@ BEGIN
 	#查看num
 	SELECT num;
 END //
-
 DELIMITER ;
 #调用
 CALL test_loop();
@@ -851,7 +847,6 @@ CALL test_loop();
 -- WHILE
 DELIMITER //
 CREATE PROCEDURE test_while()
-
 BEGIN	
 	#初始化条件
 	DECLARE num INT DEFAULT 1;
@@ -864,10 +859,9 @@ BEGIN
 	#查询
 	SELECT num;
 END //
-
 DELIMITER ;
--- REPEAT
--- REPEAT 循环首先会执行一次循环
+
+-- REPEAT 首先会执行一次循环
 DELIMITER //
 CREATE PROCEDURE test_repeat()
 BEGIN
@@ -881,14 +875,14 @@ BEGIN
 	SELECT num;
 END //
 DELIMITER ;
+--------------------------------------------------------------------
+-- ITERATE
+ITERATE语句：只能用在循环语句（LOOP、REPEAT和WHILE语句）内，表示重新开始循环，将执行顺序转到语句段开头处。如果你有面向过程的编程语言的使用经验，你可以把 ITERATE 理解为 continue，意思为“再次循环”。
+ITERATE label
 
 -- LEAVE
 LEAVE语句：可以用在循环语句内，或者以 BEGIN 和 END 包裹起来的程序体内，表示跳出循环或者跳出程序体的操作。如果你有面向过程的编程语言的使用经验，你可以把 LEAVE 理解为 break。
 LEAVE 标记名
-
--- ITERATE
-ITERATE语句：只能用在循环语句（LOOP、REPEAT和WHILE语句）内，表示重新开始循环，将执行顺序转到语句段开头处。如果你有面向过程的编程语言的使用经验，你可以把 ITERATE 理解为 continue，意思为“再次循环”。
-ITERATE label
 ```
 
 没写：单行函数。数据库、表整体的创建、增、删。部分数据类型。一些查看修改删除，约束、变量。Check约束。游标，触发器。
