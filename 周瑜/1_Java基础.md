@@ -113,7 +113,7 @@ this.name "tuling_"+name;
 
 1. 修饰变量
    - 如果final修饰的是**类变量**，只能在**静态初始化块**中指定初始值或者**声明**该类变量时指定初始值。
-   - 如果final修饰的是**成员变量**，可以在非静态初始化块、声明该变量或者构造器中指定初始值。
+   - 如果final修饰的是**成员变量**，可以在非静态初始化块、声明该变量或者**构造器**中指定初始值。
    - 如果final修饰的是**局部变量**，在定义时指定默认值（后面的代码不能对变量再赋值），也可以不指定默认值，而在后面的代码中对final变量赋初值（仅一次）
 
 ```java
@@ -572,7 +572,7 @@ XX:+HeapDumpOnOutOfMemoryError
 
 ## 38_Java MVC架构模式
 
-- mvc是model-view-controler的简称，即模型(dao,service)-视图(交互的界面)-控制器(servlet)
+- mvc是model-view-controler的简称，即模型(dao,数据库)-视图(交互的界面)-控制器(controller)
 
 - 首先由客户端发送请求，控制层接收并处理请求，再通过model层与数据库进行数据交互，然后控制层将交互得到的数据转发给视图层，最后视图层将得到的数据封装成视图页面返回给客户端用户。
 
@@ -818,6 +818,33 @@ class Tank{
     public void move(){
         System.out.println("Tank moving clacla....");
     }
+}
+```
+
+## 41_JUnit
+
+步骤：
+1. 导入JUnit 4
+2. 创建Java类：此类是public的；此类提供公共的无参的构造器（不写构造器默认就是）
+3. 此类中声明单元测试方法：方法的权限是public,没有返回值，没有形参
+4. 此单元测试方法上需要声明注解：@Test，并在单元测试类中导入：import org.junit.Test;
+5. 在方法体内测试相关的代码。
+
+```java
+ 一个@Test对应一个测试，每个测试单独执行
+  public class JUnitTest {
+	int num = 10;
+
+	@Test
+	public void testEquals() {
+		System.out.println(num);
+		show();
+	}
+
+	public void show() {
+		num = 20;
+		System.out.println("show()....");
+	}
 }
 ```
 
