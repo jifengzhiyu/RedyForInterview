@@ -2,7 +2,7 @@
 
 硬核干货！为了帮你2022年面试跳槽 能成功进大厂。我费尽心血整理了这200道Java高频面试题，强烈
 
-# 一、Java基础
+# 1_Java基础
 
 ## 0_Java数据类型
 
@@ -244,11 +244,13 @@ class outclass{
 
 ## 13_ArrayList和LinkedList区别
 
-1. ⾸先，他们的底层数据结构不同，ArrayList底层是基于**数组**（**连续内存**存储）实现的，LinkedList底层是基于**链表**实现的【可以存储在**分散的内存**中（可以碎片化存储）】
+两者都线程不安全。
+
+1. 底层数据结构不同，ArrayList底层是基于**数组**（**连续内存**存储）实现的，LinkedList底层是基于**双向链表**实现的【可以存储在**分散的内存**中（可以碎片化存储）】
 2. 由于底层数据结构不同，他们所**适⽤场景**也不同，ArrayList更适合**查找**、**下标访问**，LinkedList更适合 **删除和添加(**不适合查询：需要逐一遍历)
 3. 另外ArrayList和LinkedList都实现了List接⼝，但是LinkedList还额外实现了Deque接⼝，所以 LinkedList还可以当做队列来使⽤ 
 
-- ArrayList:扩容机制：因为数组**长度固定**，超出长度存数据时需要新建数组，然后将老数组的数据拷贝到新数组，如果不是尾部插入数据还会涉及到**元素的移动**
+- ArrayList:扩容机制：数组**长度固定**，超出长度存数据时需要新建数组，然后将老数组的数据拷贝到新数组，如果不是尾部插入数据还会涉及到**元素的移动**
   使用**尾插法**并指定初始容量可以极大提升性能、甚至超过LinkedList(需要创建大量的node对象)
 - LinkedList:遍历LinkedList必须使用iterator，不能使用**for循环**，因为每次for循环体内通过**get(i)**取得某一元素时都需要对list重新进行遍历，**性能消耗**极大。
 
@@ -285,12 +287,12 @@ class outclass{
 
   3. 如果数组下标位置元素不为空（产生hash冲突）
 
-     a. 如果是JDK1.7，则**先判断是否需要扩容**（1.8后判断），如果要扩容就进⾏扩容，如果不⽤扩容就⽣成Entry对象，并使⽤**头插法**（1.8尾插法）添加到当前位置的链表中
+     a. 如果是JDK1.7，则**先判断是否需要扩容**（1.8后判断），如果要扩容就进⾏扩容，如果不⽤扩容就⽣成**Entry**对象，并使⽤**头插法**（1.8尾插法）添加到当前位置的链表中
 
      b. 如果是JDK1.8，则会先判断当前位置上的**Node的类型**，看是红⿊树Node，还是链表Node 
 
      ​	ⅰ. 如果此位置上的Node对象是链表节点，则将key和value封装为⼀个链表Node并通过**尾插法**插⼊到链表的最后位置去，因为是尾插法，所以需要遍历链表
-     在遍历链表的过程中会用equals()判断是否存在当前key，如果存在则更新value，当遍历完链表后，将新链表Node插⼊到链表后，会看当前链表的节点个数，如果链表长度**⼤于等于8**、并且数组长度大于64，那么则会将该链表转成红⿊树 
+     在遍历链表的过程中会用equals()判断是否存在当前key，如果存在则更新value，当遍历完链表后，将新链表Node插⼊到链表后，会看当前链表的节点个数，如果**链表长度⼤于8、且数组长度大于64**，那么则会将该链表转成红⿊树 
      
      ​	ⅱ 如果是红⿊树Node，则将key和value封装为⼀个红⿊树节点并添加到红⿊树中去，在这个过程中会判断红⿊树中是否存在当前key，如果存在则更新value 
      
@@ -298,7 +300,6 @@ class outclass{
      
      【key为null,存在下标0的位置】
      
-     【数组扩容（同ArrayList）】
 
 ## 18_泛型中extends和super的区别
 
@@ -314,9 +315,9 @@ class outclass{
 
 1.8版本
 
-**HashMap默认大小是16**
+**HashMap底层数组初始大小是16**
 
-1. ⽣成新数组，大小为原来的两倍
+1. ⽣成新数组，大小为原来的**两倍**
 
 2. 遍历⽼数组中的每个位置上的链表或红⿊树 
 
@@ -419,7 +420,7 @@ AppClassLoader的⽗加载器是ExtClassLoader，ExtClassLoader的⽗加载器�
 ## 28_JVM中哪些是线程共享区 
 
 - 方法区存储**类的信息**
-  堆区存储对象
+  **堆**区存储**对**象
   虚拟机栈存储Java方法信息
   本地方法栈存储**native方法**信息
   程序计数器：每个线程当前执行到第几行代码
@@ -622,12 +623,30 @@ class Bank{
 ```java
 //懒汉式 当程序第一次访问单例模式实例时才进行创建。
 class Bank{
-    private Bank() {
-    }
+    private Bank() {}
     private static Bank instance = null;
     public static Bank getInstance()  {
         if (instance==null){
             instance = new Bank();
+        }
+        return instance;
+    }
+}
+
+/**
+ * 使用同步机制将单例模式中的懒汉式改写为线程安全的
+ * 双重if校验
+ */
+class Bank{
+    private Bank(){}
+    private static Bank instance = null;
+    public static Bank getInstance(){
+        if(instance == null){
+            synchronized (Bank.class) {
+                if(instance == null){
+                    instance = new Bank();
+                }
+            }
         }
         return instance;
     }
@@ -846,5 +865,31 @@ class Tank{
 		System.out.println("show()....");
 	}
 }
+```
+
+## 42_集合
+
+```java
+|----Collection接口：单列集合，用来存储一个一个的对象;类要重写equals()
+	|----List接口：存储有序的、可重复的数据  -->“动态”数组
+		|----ArrayList：线程不安全的，效率高；底层使用Object[] elementData存储
+		|----LinkedList：线程不安全的，效率高;对于频繁的插入、删除操作，使用此类效率比ArrayList高(一个改，移动一堆)；底层使用双向链表存储
+		|----Vector：作为List接口的古老实现类；线程安全的，效率低；底层使用Object[] elementData存储
+ 
+      
+	|----Set接口：存储无序的、不可重复的数据;类要重写hashCode()和equals()	-->高中讲的“集合”
+		|----HashSet：作为Set接口的主要实现类；线程不安全的；可以存储null值
+			|----LinkedHashSet：作为HashSet的子类；遍历其内部数据时，可以按照添加的顺序遍历,对于频繁的遍历操作，LinkedHashSet效率高于HashSet.
+		|----TreeSet：可以按照添加对象的指定属性，进行排序；底层红黑树。
+ 
+      
+	|----Map接口：双列集合，用来存储一对(key - value)一对的数据   -->高中函数：y = f(x)
+		|----HashMap:作为Map的主要实现类；线程不安全的，效率高；存储null的key和value
+			|----LinkedHashMap:保证在遍历map元素时，可以按照添加的顺序实现遍历。
+                        原因：在原有的HashMap底层结构基础上，添加了一对指针，指向前一个和后一个元素。
+                        对于频繁的遍历操作，此类执行效率高于HashMap。
+		|----TreeMap:保证按照添加的key-value对进行排序，实现排序遍历。此时考虑key的自然排序或定制排序；底层使用红黑树
+		|----Hashtable:作为古老的实现类；线程安全的，效率低；不能存储null的key和value
+			|----Properties:常用来处理配置文件。key和value都是String类型
 ```
 
