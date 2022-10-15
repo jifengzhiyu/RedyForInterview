@@ -806,7 +806,7 @@ CGLib(Code Generate Library) 与JDK动态代理不同的是，cglib生成代理�
      <version>3.2.12</version>
  </dependency>
 
- import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import java.lang.reflect.Method;
