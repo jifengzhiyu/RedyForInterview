@@ -75,9 +75,8 @@
 ## 服务器内部转发以及客户端重定向
 
 - 服务器内部转发 : 
-  - request.getRequestDispatcher("...").forward(request,response);
   - 一次请求响应的过程，对于客户端而言，内部经过了多少次转发，客户端是不知道的，地址栏没有变化
-- 客户端重定向： response.sendRedirect("....");
+- 客户端重定向： 
   - 两次请求响应的过程。客户端肯定知道请求URL有变化，地址栏有变化
 
 ## 网络通信协议:OSI七层模型和TCP/IP协议
@@ -125,4 +124,101 @@
 - 格式：
    *  http://localhost:8080/examples/beauty.jpg?username=Tom
    *  协议   主机名   端口号  资源地址           参数列表
+
+## 过滤器Filter
+
+- 开发步骤：
+  - 新建类实现Filter接口，实现方法：init、doFilter、destroy
+  - 配置Filter，可以用注解@WebFilter，也可以使用xml文件 <filter> <filter-mapping>
+- 过滤器链
+  如果采取的是注解的方式进行配置，那么过滤器链的拦截顺序是按照全类名的先后顺序排序的
+  如果采取的是xml的方式进行配置，那么按照配置的先后顺序进行排序
+
+## 大的程序流程
+
+- 请求先访问DispatcherServlet中央控制器，根据url定位到能够处理这个请求的controller组件---->调用Controller组件中的方法---->调用Service方法---->调用DAOImpl,baseDao与数据库交互---->数据返回Servlet----->将数据渲染到页面上返回给客户端
+
+## 保存作用域
+
+1） request：一次请求响应范围，无论服务器内部转发多少次
+2） session：一次会话范围有效
+3） application： 一次应用程序范围有（服务器端端应用程序）
+
+## 访问一个URL，执行的过程？
+
+http://localhost:8080/pro23/page.do?operate=page&page=login 访问这个URL，执行的过程是什么样的？
+
+http://  localhost   :8080   /pro23          /page.do                        ?operate=page&page=login
+协议     ServerIP   port    context root    request.getServletPath()         query string
+
+1) DispatcherServlet -> urlPattern :  *.do  拦截 -> /page.do
+2) request.getServletPath() ->  /page.do
+3) 解析处理字符串 ，将/page.do -> page
+4) 拿到page这个字符串，然后去IOC容器（BeanFactory）中寻找id=page的那个bean对象   -> PageController.java
+5) request.getParameter("operate") 获取operate的值 -> page，因此得知，应该执行 PageController中的page()方法
+6) PageController中的page方法定义如下：
+   public String page(String page){
+     return page ;
+   }
+7) 在queryString:   ?operate=page&page=login 中获取请求参数，参数名是page，参数值是login
+   因此page方法的参数page值会被赋上"login"
+   然后return "login" , return 给谁？
+8) 因为PageController的page方法是DispatcherServlet通过反射调用的，因此字符串"login"返回给DispatcherServlet
+9) DispatcherServlet接收到返回值，然后处理视图
+   目前处理视图的方式有两种： 1.带前缀redirect:    2.不带前缀
+   当前，返回"login"，不带前缀
+   那么执行  super.processTemplete("login",request,response);
+10) 此时ViewBaseServlet中的processTemplete方法会执行，效果是：
+       在"login"这个字符串前面拼接 "/"  (其实就是配置文件中view-prefixe配置的值)
+       在"login"这个字符串后面拼接 ".html" (其实就是配置文件中view-suffix配置的值)
+       最后进行服务器转发
+
+## javaweb项目开发的套路要点
+
+   1. 在web.xml文件中配置：
+
+      配置前缀和后缀，这样thymeleaf引擎就可以根据我们返回的字符串进行拼接，再跳转
+      配置监听器要读取的参数，目的是加载IOC容器的配置文件（也就是applicationContext.xml，配置需要注入bean的ID和路径）
+      监听器监听Servlet上下文对象初始化后， 创建IOC容器、存入bean，然后将其保存到application作用域，后面中央控制器再从application作用域中去获取IOC容器。
+
+   2. 开发具体的业务模块：
+      1） 一个具体的业务模块纵向上由几个部分组成：
+         - html页面
+         - POJO类
+         - DAO接口和实现类
+         - Service接口和实现类
+         - Controller 控制器组件
+
+      2）如果html页面有thymeleaf表达式，必须要经过PageController来访问super.processTemplate
+
+      3）在applicationContext.xml中配置 DAO、Service、Controller，以及三者之间的依赖关系
+
+      4）DAO实现类中 ， 继承BaseDAO，然后实现具体的接口
+
+      5） Controller类的编写规则
+
+      ​	① 在applicationContext.xml中配置Controller，bean id及路径。
+        用户在前端发请求时，对应的servletpath就是   /user.do   , 其中的“user”就是对应此处的bean的id值
+
+      ​	② 在Controller中设计的方法名需要和operate的值一致
+
+      ​	③ 在表单中，组件的name属性和Controller中方法的参数名一致
+      ​    <input type="text" name="loginId" />
+      ​    public String login(String loginId , String pwd , HttpSession session){
+      6）  DispatcherServlet中步骤大致分为：
+
+      0. 从application作用域获取IOC容器
+
+      1. 解析servletPath ， 在IOC容器中寻找对应的Controller组件
+      2. 准备operate指定的方法所要求的参数
+      3. 调用operate指定的方法
+      4. 接收到执行operate指定的方法的返回值，对返回值进行处理 - 视图处理
+
+      7）为什么DispatcherServlet能够从application作用域获取到IOC容器？
+      ContextLoaderListener在容器启动时(listener)会执行初始化任务，而它的操作就是：
+
+      1. 解析IOC的配置文件，创建一个一个的组件，并完成组件之间依赖关系的注入
+      2. 将IOC容器保存到application作用域
+
+---
 

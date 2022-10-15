@@ -573,7 +573,7 @@ XX:+HeapDumpOnOutOfMemoryError
 
 ## 38_Java MVC架构模式
 
-- mvc是model-view-controler的简称，即模型(dao,数据库)-视图(交互的界面)-控制器(controller)
+- mvc是model-view-controler的简称，即模型(dao,数据库)-视图(数据展示、交互的界面)-控制器(接受请求)
 
 - 首先由客户端发送请求，控制层接收并处理请求，再通过model层与数据库进行数据交互，然后控制层将交互得到的数据转发给视图层，最后视图层将得到的数据封装成视图页面返回给客户端用户。
 
