@@ -573,9 +573,14 @@ XX:+HeapDumpOnOutOfMemoryError
 
 ## 38_Java MVC架构模式
 
-- mvc是model-view-controler的简称，即模型(dao,数据库)-视图(数据展示、交互的界面)-控制器(接受请求)
+> JavaBean分为两类：
+>
+> - 一类称为实体类Bean：专门存储业务数据的，如 Student、User 等
+> - 一类称为业务处理 Bean：指 Service 或 Dao 对象，专门用于处理业务逻辑和数据访问。
 
-- 首先由客户端发送请求，控制层接收并处理请求，再通过model层与数据库进行数据交互，然后控制层将交互得到的数据转发给视图层，最后视图层将得到的数据封装成视图页面返回给客户端用户。
+- mvc是model-view-controler的简称，即模型(JavaBean,处理数据)-视图(数据展示、交互的界面)-控制器(servlet接受请求响应浏览器)
+
+- 用户通过视图层发送请求到服务器，在服务器中请求被Controller接收，Controller调用相应的Model层处理请求，处理完毕将结果返回到Controller，Controller再根据请求处理的结果找到相应的View视图，渲染数据后最终响应给浏览器
 
 - 好处：
 
@@ -584,7 +589,7 @@ XX:+HeapDumpOnOutOfMemoryError
 
 - Java EE的三层架构：
 
-  - JavaEE三层架构分为表示层、业务逻辑层、数据访问层
+  - JavaEE三层架构分为表示层/表述层、业务逻辑层、数据访问层
 
   - 表示层（web层）：负责接收客户端用户的请求，并返回对应数据展示视图。相当于MVC中的V和C，但这里的C只进行请求的接收、处理交给业务逻辑层
 
