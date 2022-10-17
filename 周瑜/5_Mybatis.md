@@ -69,7 +69,7 @@
 
   ${} 的变量替换是在 DBMS 外、变量替换后，${} 对应的变量不会加上单引号
 
-- 使用#{}可以有效的**防止 SQL 注入**， 提高系统安全性。查询字段就用${}。
+- 使用#{}可以有效的**防止 SQL 注入**， 提高系统安全性。
 
 ## 4_简述Mybatis的插件运行原理，如何编写一个插件（先不背）
 
@@ -94,4 +94,71 @@ invocation.proceed()执行目标类具体的业务逻辑
   //比如拦截StatementHandler的query() = 具体的业务逻辑
 //query()执行之后做的操作
 ```
+
+## Mybatis使用
+
+- MyBatis的核心配置文件为mybatis-config.xml，配置连接数据库的环境以及MyBatis的全局配置信息，引入映射文件
+
+```xml
+<mappers>
+<mapper resource="mappers/UserMapper.xml"/>
+</mappers>
+```
+
+- MyBatis中的mapper接口相当于以前的dao。但是区别在于，mapper仅仅是接口，我们不需要
+  提供实现类。
+
+```java
+public interface UserMapper {
+/**
+* 添加用户信息
+*/
+int insertUser();
+}
+```
+
+- 映射文件的命名规则：
+  表所对应的实体类的类名+Mapper.xml
+  例如：表t_user，映射的实体类为User，所对应的映射文件为UserMapper.xml
+  因此一个映射文件对应一个实体类，对应一张表的操作
+  MyBatis映射文件用于编写SQL，访问以及操作表中的数据
+  MyBatis映射文件存放的位置是src/main/resources/mappers目录下
+- MyBatis中可以面向接口操作数据，要保证两个一致：
+  a>mapper接口的全类名和映射文件的命名空间（namespace）保持一致
+  b>mapper接口中方法的方法名和映射文件中编写SQL的标签的id属性保持一致
+
+```xml
+<mapper namespace="com.atguigu.mybatis.mapper.UserMapper">
+<!--int insertUser();-->
+<insert id="insertUser">
+insert into t_user values(null,'张三','123',23,'女')
+</insert>
+</mapper>
+```
+
+
+
+
+
+
+
+````xml
+/**
+* 根据用户id查询用户信息
+* @param id
+* @return
+*/
+User getUserById(@Param("id") int id);
+
+<!--User getUserById(@Param("id") int id);-->
+<select id="getUserById" resultType="User">
+select * from t_user where id = #{id}
+</select>
+
+<!--Map<String, Object> getUserToMap(@Param("id") int id);-->
+<select id="getUserToMap" resultType="map">
+select * from t_user where id = #{id}
+</select>
+<!--结果：{password=123456, sex=男, id=1, age=23, username=admin}-->
+````
 
