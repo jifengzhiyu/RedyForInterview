@@ -97,7 +97,11 @@ invocation.proceed()执行目标类具体的业务逻辑
 
 ## Mybatis使用
 
-- MyBatis的核心配置文件为mybatis-config.xml，配置连接数据库的环境以及MyBatis的全局配置信息，引入映射文件
+- 需要：
+  Java实体类
+  Mapper接口
+  Mapper映射文件
+- MyBatis的核心配置文件为mybatis-config.xml，配置连接数据库的环境，MyBatis的全局配置信息，引入映射文件
 
 ```xml
 <mappers>
@@ -105,27 +109,23 @@ invocation.proceed()执行目标类具体的业务逻辑
 </mappers>
 ```
 
-- MyBatis中的mapper接口相当于以前的dao。但是区别在于，mapper仅仅是接口，我们不需要
-  提供实现类。
+- MyBatis中的mapper接口相当于以前的dao。但是区别在于，mapper仅仅是接口，我们不需要提供实现类。
+  - a>mapper接口的全类名和映射文件的命名空间（namespace）保持一致
+    b>mapper接口中方法的方法名和映射文件中编写SQL的标签的id属性保持一致
+  
 
 ```java
 public interface UserMapper {
-/**
-* 添加用户信息
-*/
+//添加用户信息
 int insertUser();
 }
 ```
 
 - 映射文件的命名规则：
   表所对应的实体类的类名+Mapper.xml
-  例如：表t_user，映射的实体类为User，所对应的映射文件为UserMapper.xml
   因此一个映射文件对应一个实体类，对应一张表的操作
   MyBatis映射文件用于编写SQL，访问以及操作表中的数据
   MyBatis映射文件存放的位置是src/main/resources/mappers目录下
-- MyBatis中可以面向接口操作数据，要保证两个一致：
-  a>mapper接口的全类名和映射文件的命名空间（namespace）保持一致
-  b>mapper接口中方法的方法名和映射文件中编写SQL的标签的id属性保持一致
 
 ```xml
 <mapper namespace="com.atguigu.mybatis.mapper.UserMapper">
@@ -135,12 +135,6 @@ insert into t_user values(null,'张三','123',23,'女')
 </insert>
 </mapper>
 ```
-
-
-
-
-
-
 
 ````xml
 /**
@@ -162,3 +156,16 @@ select * from t_user where id = #{id}
 <!--结果：{password=123456, sex=男, id=1, age=23, username=admin}-->
 ````
 
+## MyBatis的缓存
+
+下次查询相同的数据，就会从缓存中直接获取，不会从数据库重新访问
+
+- 一级缓存是SqlSession级别的，通过同一个SqlSession查询的数据会被缓存，下次查询相同的数据，就
+  会从缓存中直接获取，不会从数据库重新访问
+- 二级缓存是SqlSessionFactory级别，通过同一个SqlSessionFactory创建的SqlSession查询的结果会被
+  缓存；
+- 缓存查询的顺序
+  - 先查询二级缓存，因为二级缓存中可能会有其他程序已经查出来的数据，可以拿来直接使用。
+    如果二级缓存没有命中，再查询一级缓存
+    如果一级缓存也没有命中，则查询数据库
+    SqlSession关闭之后，一级缓存中的数据会写入二级缓存
