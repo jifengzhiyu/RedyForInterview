@@ -51,7 +51,7 @@ AOP:将程序中的交叉业务逻辑（比如安全，日志，事务等），�
 
 - IOC思想基于 IOC 容器完成，IOC容器就是个map，里面存储各种对象，在项目启动的时候会读取配置文件里面的bean节点、@repository、@service、@controller、@component注解的类，根据全类名使用**反射**创建对象放到map里。
 
-  注入时会读取xml里bean节点内的ref属性根据id注入，也会扫描autowired、resource等注解的属性，根据类型或id对象名注入。
+  注入时会读取xml里bean节点内的ref属性根据id注入，也会扫描autowired、resource等注解的属性，根据类型或id对象名注入，组件之间的关系通过IOC容器来自动装配，也就是我们所说的依赖注入。
 
 - 什么是控制反转：
 
@@ -62,9 +62,9 @@ AOP:将程序中的交叉业务逻辑（比如安全，日志，事务等），�
 
 - IOC 底层原理：xml 解析、工厂模式、反射
 
-- 依赖注入：
+- 依赖注入(DI)：
 
-  依赖注入是实现IOC的方法，IOC容器在运行期间，动态地将某种**依赖关系**注入到对象之中。
+  依赖注入是实现IOC的方法，IOC容器在运行期间，动态地将某种**依赖关系**注入到对象之中，将类里面的属性在创建类的过程中给属性赋值。
 
   - IOC有三种注入方式：
 
@@ -82,12 +82,13 @@ AOP:将程序中的交叉业务逻辑（比如安全，日志，事务等），�
 
 ## 6_解释下Spring支持的几种bean的作用域
 
-1. singleton（单例模式）：默认，每个IOC**容器**中只有一个bean的实例，由BeanFactory自身来维护。该对象的生命周期是与Spring IOC容器一致的，但在第一次被注入时创建。
-2. prototype（原型模式）：为每一个getbean请求提供一个实例。在每次注入时都会创建一个新的对象，容器中有多个实例。
+等同于@Scope注解取值
+
+1. singleton（单例模式）：默认，每个IOC**容器**中只有一个bean的实例，在IOC容器启动后实例化。
+2. prototype（原型模式）：IOC容器启动时不会实例化，每次从Spring容器中获取组件对象时，都会创建一个新的实例对象并返回，多实例的bean在容器关闭的时候是不进行销毁的。
 3. request：每个HTTP请求中有一个bean的单例对象，在HTTP请求结束后，bean会随之失效。
 4. session：每个session中有一个bean的单例对象，在session过期后，bean会随之失效。
-5. application：bean被定义为在容器上下文ServletContext的生命周期中复用一个单例对象。
-6. websocket：bean被定义为在websocket的生命周期中复用一个单例对象。
+5. application：不管应用程序中有多少个Spring容器，这个应用程序中同名的bean只有一个。
 
 ## 7_Spring事务的实现方式和原理？
 
@@ -209,7 +210,7 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 8. 初始化后，进行AOP
 9. 如果当前创建的bean是单例(默认)的则会把bean放入单例池
 10. 使用bean
-11. Spring容器关闭时调用**DisposableBean**中destory()方法
+11. Spring容器关闭时调用**DisposableBean**接口中destory()方法，多例bean销毁不会调用该接口方法，多实例bean的生命周期不归Spring容器来管理。
 
 简化版：
 
@@ -294,7 +295,8 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 
 工厂方法：
 
-> 实现了FactoryBean接口的bean是一类叫做factory的bean。其特点是，spring会在使用getBean()调用获得该bean时，会自动调用该bean的getObject()方法，所以返回的不是factory这个bean，而是这个 bean.getOjbect()方法的返回值。
+> - 一般情况下，Spring是通过反射机制利用bean的class属性指定实现类来实例化bean的。在某些情况下，实例化bean过程比较复杂，Spring为此提供了一个FactoryBean的工厂类接口，用户可以通过实现该接口定制实例化bean的逻辑。
+> - spring会在使用getBean()调用获得该bean时，会自动调用该bean的getObject()方法，所以返回的不是factory这个bean，而是这个 bean.getOjbect()方法的返回值。
 
 单例模式：保证一个类仅有一个实例，并提供一个访问它的全局访问点
 
