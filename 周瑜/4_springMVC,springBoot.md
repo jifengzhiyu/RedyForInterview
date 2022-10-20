@@ -4,25 +4,33 @@
 
 - **Spring是一个IOC容器，用来管理Bean**，使用依赖注入实现控制反转，降低程序耦合，可以方便整合各种框架，提供AOP机制弥补OOP的代码重复问题、将不同类不同方法中的共同处理逻辑抽取成切面、**自动注入给方法执行**，比如日志、异常等。
 - **SpringMVC是Spring对web层的解决方案，是Spring的一部分**，提供了一个**总的前端控制器**DispatcherServlet，用来接收http请求，解析请求、处理参数，定义了一套**路由策略**（url到Handler处理器的映射）**及适配器执行Handler**（处理请求的方法），将Handler结果使用视图解析技术生成视图展现给前端
-- **Springboot是Spring提供的一个快速开发工具包，让程序员能更方便、更快速的开发Spring+SpringMVC应用**，简化了配置（约定了默认配置），整合了一系列的解决方案（starter机制），redis、mongodb、es，可以开箱即用，直接把对应的**starter**包拖进来，就不用做原来bean的配置
+- **Springboot是Spring提供的一个快速开发工具包，让程序员能更方便、更快速的开发Spring+SpringMVC应用**，简化了配置（约定了默认配置）；只要引入starter，这个场景的所有常规需要的依赖我们都自动引入；内嵌web服务器Tomcat等
 
-## 2_SpringMVC/SpringBoot常用注解
+## 2_Spring/SpringMVC/SpringBoot常用注解
 
-- Spring注解:在类上的注解：类是交给Spring容器进行管理，用于注册Bean
-  - @controller 控制器（注入服务）
-  - @service 服务（注入dao）
-  - @repository dao（**实现dao访问**)
-  - @component （泛指组件，当组件不好归类的时候）
+- Spring注解:
+  - 在类上的注解：类是交给Spring容器进行管理，用于注册Bean
+    - @controller 控制器层
+    - @service 业务层（注入dao）
+    - @repository 持久层（**实现dao访问**)
+    - @component （泛指组件，当组件不好归类的时候）
+    - @Bean
+
+  - @Configuration 配置类
+  - @ComponentScan 包扫描
+  - @Autowired：**依赖注入实体类**
+
 - SpringMVC注解:
   - @RequestParam(“username”) 将请求参数和控制器方法的形参创建映射关系，defaultValue 表示设置默认值，required 通过设置是否是必须要传入的参数，value值表示传入的**参数名**。
   - @RequestMapping的派生注解
     - 处理get请求的映射-->@GetMapping
     - 处理post请求的映射-->@PostMapping
   - @RequestMapping ：来映射URL请求，指定控制器可以处理哪些URL请求 @RequestMapping("/test")，可以指定method。
+  - @ResponseBody：将java对象转为json格式的数据，作用在方法上
 - springboot注解：
   - @SpringBootApplication：启动类注解
-  - @Autowired：**依赖注入实体类**
-  - @ResponseBody：将java对象转为json格式的数据，作用在方法上
+  - @ConfigurationProperties(prefix = "user1")，修饰类，使用配置文件.properties中前缀为user1的属性的值初始化该bean的同名属性
+  - @AutoConfigurationPackage：获取该注解所在类的包名，将指定包下的所有组件导入进来
 
 ## 3_SpringMVC工作流程（重要）
 

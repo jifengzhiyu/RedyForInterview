@@ -38,8 +38,12 @@ AOP:将程序中的交叉业务逻辑（比如安全，日志，事务等），�
   - 连接点：类里面哪些方法可以被增强，这些方法称为连接点
   - 切入点：实际被真正增强的方法，称为切入点
   - 通知（增强）：实标增强的逻辑部分称为通知（增强）
-    - 通知有多钟类型：前置通知；后置通知；环绕通知；异常通知；最终通知
-
+    - 前置通知（对应的注解是@Before）：在目标方法运行之前运行
+    - 后置通知（对应的注解是@After）：在目标方法运行结束之后运行，无论目标方法是正常结束还是异常结束都会执行
+    - 返回通知（对应的注解是@AfterReturning）：在目标方法正常返回之后运行
+    - 异常通知（对应的注解是@AfterThrowing）：在目标方法运行出现异常之后运行
+    - 环绕通知（对应的注解是@Around）：在目标方法的前后都能做增强功能；控制目标方法是否执行；通过返回值修改目标方法的执行结果
+    
   - 切面：把通知应用到切入点过程。
 
 
@@ -79,6 +83,20 @@ AOP:将程序中的交叉业务逻辑（比如安全，日志，事务等），�
 3、遍历这个set集合，反射获取在类上有指定注解类的对象，并将其交给IOC容器，定义Map用来存储这些对象
 
 4、对需要注入的类进行**依赖注入**
+
+下面看看
+
+- Spring IOC容器在启动的时候，会先保存所有注册进来的bean的定义信息，BeanFactory就会按照这些bean的定义信息来为我们创建对象。
+  两种方式来编写这些bean的定义信息：
+  使用XML配置文件的方式来注册bean；
+  使用注解来注册bean。
+- 当IOC容器中有保存一些bean的定义信息的时候，它便会在合适的时机来创建这些bean，而且主要有两个合适的时机，分别如下：
+  就是在用到某个bean的时候。
+  统一创建所有剩下的单实例bean的时候。
+- BeanPostProcessor（即后置处理器）。在Spring中其实是有非常多的后置处理器的，它们一般都是在我们bean初始化前后进行逻辑增强的。
+- Spring的事件驱动模型。它涉及到了两个元素：
+  - ApplicationListener：它是用来做事件监听
+    ApplicationEventMulticaster：事件派发器。它就是来帮我们进行事件派发的
 
 ## 6_解释下Spring支持的几种bean的作用域
 
@@ -151,7 +169,7 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 
 ## 11_什么是bean的自动装配，有哪些方式？
 
-- 自动装配：根据指定装配规则（属性名称或者属性类型），Spring自动将匹配的属性值进行注入。
+- 自动装配：Spring利用依赖注入，也就是我们通常所说的DI，完成对IOC容器中各个组件的依赖关系赋值。
 - 开启自动装配，只需要在xml配置文件中定义“autowire”属性。
 
 ```xml
@@ -162,21 +180,22 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
 
   - **缺省情况下**，通过“ref”属性手动设定
 
-    ```
-    手动装配：以value或ref的方式明确指定属性值都是手动装配。 
-    需要通过‘ref’属性来连接bean。
-    ```
+  ```
+  手动装配：以value或ref的方式明确指定属性值都是手动装配。 
+  需要通过‘ref’属性来连接bean。
+  ```
 
-    - byName ---根据bean的属性名称进行自动装配。
+  - byName ---根据bean的属性名称进行自动装配。
 
-      ```xml
-      Cutomer的属性名称是person，Spring会将bean id为person的bean通过setter方法进行自动装配。
-      <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="byName"/> 
-      <bean id="person" class="com.xxx.xxx.Person"/>
-      ```
-
-    - byType---根据bean的类型进行自动装配。
-
+  
+  ```xml
+  Cutomer的属性名称是person，Spring会将bean id为person的bean通过setter方法进行自动装配。
+  <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="byName"/> 
+  <bean id="person" class="com.xxx.xxx.Person"/>
+  ```
+  
+  - byType---根据bean的类型进行自动装配。
+  
   
     ```xml
     Cutomer的属性person的类型为Person，Spirng会将Person类型通过setter方法进行自动装配。
@@ -192,25 +211,28 @@ sprig事务的原理是AOP，进行了切面增强，那么失效（方法上加
     <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="construtor"/>
     <bean id="person" class="com.xxx.xxx.Person"/>
     ```
-
-    -  autodetect---如果有默认的构造器，则通过constructor方式进行自动装配，否则使用byType方式进行自动装配。
   
-
-@Autowired注解方式自动装配bean，可以在**字段、setter方法、构造方法**上使用。
+    -  @Autowired注解方式自动装配bean，可以在**字段、setter方法、构造方法**上使用。无论@Autowired注解是标注在字段上、实例方法上、构造方法上还是参数上，参数位置的组件都是从IOC容器中获取。
+  
 
 ## 12_描述一下Spring Bean的生命周期？
 
-1. 解析类得到BeanDefinition
-2. 如果有多个构造方法，则要推断**构造方法**
-3. 确定好构造方法后，进行实例化得到一个对象
-4. 对对象中的加了@Autowired注解的属性进行注入
-5. **处理回调Aware接口**，比如BeanNameAware，BeanFactoryAware
-6. 初始化前，调用BeanPostProcessor的**初始化前的方法**，@PostConstruct注解的方法在BeanPostProcessor**前置处理器**中被执行。
-7. 调用初始化方法，如果bean的类实现了**InitializingBean**接口，就处理该接口
-8. 初始化后，进行AOP
-9. 如果当前创建的bean是单例(默认)的则会把bean放入单例池
+> 自定义的组件要想使用Spring容器底层的一些组件，比如ApplicationContext（IOC容器）、底层的BeanFactory等等，那么只需要让自定义组件实现XxxAware接口即可。此时，Spring在创建对象的时候，会调用XxxAware接口中定义的方法注入相关的组件。
+>
+> [Spring会调用setApplicationContext()方法，并且会将ApplicationContext对象传入到setApplicationContext()方法中，我们只需要在Dog类中定义一个ApplicationContext类型的成员变量来接收setApplicationContext()方法中的参数，那么便可以在Dog类的其他方法中使用ApplicationContext对象了。]
+>
+> 通过ApplicationContextAware接口我们可以获取到IOC容器。
+
+3. 实例化得到一个对象
+4. 设置对象属性
+5. **检查Aware的相关接口并设置相关依赖**
+6. 初始化前，调用BeanPostProcessor的**初始化前的方法**，其中执行@PostConstruct注解的方法。
+7. 调用初始化方法，如果bean的类实现了**InitializingBean**接口，就处理该接口；如果配置自定义的 init-method，就执行init-method指定的方法
+8. 初始化后，调用BeanPostProcessor的**初始化后的方法**，进行AOP，后置处理器会判断该bean是否注册了切面，若是，则生成代理对象注入到容器中；
+9. 注册Destruction相关回调接口，为了方便对象的销毁
 10. 使用bean
-11. Spring容器关闭时调用**DisposableBean**接口中destory()方法，多例bean销毁不会调用该接口方法，多实例bean的生命周期不归Spring容器来管理。
+11. Spring容器关闭时，如果实现了即调用**DisposableBean**接口中destory()方法，多例bean销毁不会调用该接口方法，多实例bean的生命周期不归Spring容器来管理。
+11. 如果配置自定义的destory-method就调用。
 
 简化版：
 
