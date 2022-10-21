@@ -127,16 +127,62 @@
 
 ## 过滤器Filter
 
+![img](Pic/v2-73b201658ebb18df353b61d1d59a4b45_1440w.webp)
+
+- 当有一堆东西的时候，只希望过滤留下需要的。
 - 开发步骤：
   - 新建类实现Filter接口，实现方法：init、doFilter、destroy
   - 配置Filter，可以用注解@WebFilter，也可以使用xml文件 <filter> <filter-mapping>
+- 调用时机：过滤器是在请求进入容器后，但请求进入`servlet`之前进行预处理的(最前)。请求结束返回也是，是在`servlet`处理完后，返回给前端之前(最后)。
 - 过滤器链
   如果采取的是注解的方式进行配置，那么过滤器链的拦截顺序是按照全类名的先后顺序排序的
   如果采取的是xml的方式进行配置，那么按照配置的先后顺序进行排序
+- 使用场景：统⼀编码处理、敏感字符过滤
+
+## 拦截器Interceptor
+
+![image.png](Pic/1605765121071-64cfc649-4892-49a3-ac08-88b52fb4286f.png)
+
+- 在一个流程正在进行的时候，希望干预它的进展，甚至终止。
+- 开发步骤：
+  - 新建类实现HandlerInterceptor接口，实现方法：
+    - preHandle 在controller请求处理之前进行调用
+      - 如果当前拦截器preHandle返回为true。则执行下一个拦截器的preHandle；
+      - 如果当前拦截器返回为false。直接倒序执行所有已经执行了的拦截器的afterCompletion；
+      - 所有拦截器都返回True，才执行目标方法
+    - postHandle 
+      - 倒序执行所有拦截器的postHandle方法。
+      - 在Controller中的方法调用之后，DispatcherServlet 返回渲染视图之前被调用。 
+    - afterCompletion 
+      - 前面的步骤有任何异常都会直接倒序触发 afterCompletion
+      - 在整个请求结束之后， DispatcherServlet渲染了对应的视图之后执行。
+- 使用场景：登录验证，权限验证、日志记录、性能监控
+
+## 监听器@WebListener
+
+- 当一个事件发生的时候，希望获得这个事件发生的详细信息，而并不想干预这个事件本身的进程。
+- 监听包括request域(ServletRequest)，session域(HttpSession)，application域(ServletContext)的创建，销毁和属性的变化；
+- 开发步骤：
+  - 使用注解@WebListener
+  - 实现相应Listener接口
+  - 监听的方法需要事件对象传递进来，在监听器上通过事件对象获取事件源，对事件源进行修改
+- 调用时机：当事件源发生某个动作的时候，它会调用事件监听器的方法，把事件对象传递进去。
+- 使用场景：统计网站访问量，初始化的动作(ServletContext范围的监听器)，对客户端信息的变化进行跟踪(Session范围的监听器)
 
 ## 大的程序流程
 
-- 请求先访问DispatcherServlet中央控制器，根据url定位到能够处理这个请求的controller组件---->调用Controller组件中的方法---->调用Service方法---->调用DAOImpl,baseDao与数据库交互---->数据返回Servlet----->将数据渲染到页面上返回给客户端
+- 请求被过滤器拦截-->
+- DispatcherServlet中央控制器，根据url定位到能够处理这个请求的controller组件---->
+- 拦截器的preHandle()---->
+- 调用Controller组件中的方法---->
+- 调用Service方法---->
+- 调用DAOImpl,baseDao与数据库交互---->
+- 数据返回Servlet----->
+- 拦截器的postHandle()---->
+- DispatcherServlet将数据渲染到页面上---->
+- 拦截器的afterCompletion()---->
+- 被过滤器拦截---->
+- 返回给客户端
 
 ## 保存作用域
 

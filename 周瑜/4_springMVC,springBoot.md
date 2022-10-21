@@ -109,7 +109,7 @@ initFlashMapManager(context)，用来管理FlashMap的，FlashMap主要用在red
 - 内部组件化程度高，可插拔式组件**即插即用**，想要什么功能配置相应组件即可
 - **性能卓著**，尤其适合现代大型、超大型互联网项目要求
 
-## RESTful
+## RESTful/Rest风格
 
 - **Re**presentational **S**tate **T**ransfer，表现层资源状态转移，通过转移和操作资源的表述（文件格式），来间接实现操作资源的目的。
 
@@ -138,7 +138,7 @@ initFlashMapManager(context)，用来管理FlashMap的，FlashMap主要用在red
 
   a>当前请求的请求方式必须为post
 
-  b>当前请求必须传输请求参数 _method
+  b>当前请求必须传输请求参数/隐藏域 _method
 
   满足以上条件，**HiddenHttpMethodFilter** 过滤器就会将当前请求的请求方式转换为请求参数_method的值，因此请求参数\_method的值才是最终的请求方式
 
@@ -218,3 +218,10 @@ SpringBoot内置了tomcat.jar，就是嵌入式服务器，运行main方法时�
 2. 在创建Spring容器过程中，会利用@ConditionalOnClass判断当前classpath中是否存在Tomcat依赖，如果存在则会生成一个**启动Tomcat的Bean**
 3. Spring容器创建完之后，就会获取启动Tomcat的Bean,并创建Tomcat对象，并**绑定端口**等，然后启动Tomcat
 
+## lombok插件
+
+- @Data---帮助生产getset方法
+- @ToString---帮助生成ToString方法
+- @AllArgsConstructor---生成全参构造器
+- @NoArgsConstructor---生成无参构造方法
+- @EqualsAndHashCode---生成HashCode方法
