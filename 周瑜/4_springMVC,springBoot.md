@@ -19,7 +19,6 @@
   - @Configuration 配置类
   - @ComponentScan 包扫描
   - @Autowired：**依赖注入实体类**
-
 - SpringMVC注解:
   - @RequestParam(“username”) 将请求参数和控制器方法的形参创建映射关系，defaultValue 表示设置默认值，required 通过设置是否是必须要传入的参数，value值表示传入的**参数名**。
   - @RequestMapping的派生注解
@@ -30,7 +29,6 @@
 - springboot注解：
   - @SpringBootApplication：启动类注解
   - @ConfigurationProperties(prefix = "user1")，修饰类，使用配置文件.properties中前缀为user1的属性的值初始化该bean的同名属性
-  - @AutoConfigurationPackage：获取该注解所在类的包名，将指定包下的所有组件导入进来
 
 ## 3_SpringMVC工作流程（重要）
 
@@ -179,8 +177,10 @@ initFlashMapManager(context)，用来管理FlashMap的，FlashMap主要用在red
 
 ## 5_SpringBoot自动配置/装配原理(重要)
 
-- @Import + @Configuration + @Bean + Spring spi机制加载
-- 自动配置类由各个starter提供，使用@Configuration + @Bean定义配置类的全路径作为字符串，放到META-INF/Spring.factories
+@EnableAutoConfiguration：
+
+- @Import + @Configuration + @Bean + 通过Spring spi机制加载
+- 自动配置类由各个starter提供，使用@Configuration + @Bean定义配置类，配置类的全路径作为字符串，放到META-INF/Spring.factories
 - 使用Spring spi扫描META-INF/Spring.factories下的配置类
 - 使用@Import导入**自动配置类**到ioc容器中
 
@@ -188,10 +188,13 @@ initFlashMapManager(context)，用来管理FlashMap的，FlashMap主要用在red
 
 上图解读【主要还是背图片以上的文字好了】： 
 
+---
+
 - SpringBoot使用就是写一个starter类，加上@SpringBootApplication
-- @AutoConfigurationPackage-->@import导入AutoConfigurationPackages.Registrar.class来注册一个bean来保存扫描路径到全局变量中，比如提供Spring的JPA框架查询使用，JPA需要处理自己的注解，需要知道扫描包路径
-- selectlmports方法返回存储在META-INF/Spring.factories文件中的字符串数组，键值对形式，一个key是EnableAutoConfiguration，value是配置类的全路径，通过Spring的SpringFactoriesLoader.loadFactoryNames这个API（Spring的spi机制），通过反射配合@import，加载到Spring的IOC容器中，最终会变成Spring的bean
-- @Configuration修饰的类本身是IOC容器的类，里面每个@Bean都会变成bean对象
+- @AutoConfigurationPackage-->@import导入Registrar.class-->将指定目录下的所有组件导入到Spring容器中，将扫描路径注册到全局，给其他组件查询（例如：JPA）。
+- selectlmports方法返回存储在META-INF/Spring.factories文件中的字符串数组，键值对形式，key是EnableAutoConfiguration，value是类的全路径，通过SpringFactoriesLoader.loadFactoryNames这个API（Spring的spi机制），通过反射配合@import，将类路径加载到Spring的IOC容器中，最终会变成Spring的bean。
+  如果这个bean有@Configuration，里面定义的bean有@Bean注解，则里面的bean也会加载到IOC容器中。
+- 修饰的类本身是IOC容器的类，里面每个@Bean都会变成bean对象
 - 比如我们使用MyBatis需要配置相关的bean，手动配置通过xml文件bean标签配置。
   自动配置，MyBatis提供META-INF/Spring.factories文件，使用@Configuration + @Bean定义配置类，将配置类的全路径放在Spring.factories里面，这样Spring就会自动加载Bean
 
