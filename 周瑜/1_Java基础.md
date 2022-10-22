@@ -845,34 +845,54 @@ class Tank{
 }
 ```
 
-## 41_JUnit
+## JUnit5
 
-步骤：
-1. 导入JUnit 4
-2. 创建Java类：此类是public的；此类提供公共的无参的构造器（不写构造器默认就是）
-3. 此类中声明单元测试方法：方法的权限是public,没有返回值，没有形参
-4. 此单元测试方法上需要声明注解：@Test，并在单元测试类中导入：import org.junit.Test;
-5. 在方法体内测试相关的代码。
+Spring Boot 2.2.0 版本开始引入 JUnit 5 作为单元测试默认库
 
 ```java
- 一个@Test对应一个测试，每个测试单独执行
-  public class JUnitTest {
-	int num = 10;
-
-	@Test
-	public void testEquals() {
-		System.out.println(num);
-		show();
-	}
-
-	public void show() {
-		num = 20;
-		System.out.println("show()....");
-	}
+//@SpringBootTest标注的类具有Spring的功能，可以使用@Autowired等注解、@Transactional 标注测试方法，测试完成后自动回滚
+@SpringBootTest
+public class Boot05WebAdminApplicationTests  {
+    @Test
+    void testEquals() {
+    }
 }
 ```
 
-## 42_集合
+JUnit5常用注解：
+
+- **@ParameterizedTest :**表示方法是参数化测试，将传入的参数一一测试。
+- **@RepeatedTest :**方法重复执行次数
+- **@DisplayName :**为测试类或者测试方法设置**展示名称**
+  - **@BeforeEach :**表示在每个单元测试之前执行
+  - **@AfterEach :**表示在每个单元测试之后执行
+  - **@BeforeAll :**表示在所有单元测试之前执行
+  - **@AfterAll :**表示在所有单元测试之后执行
+- **@Disabled :**表示测试类或测试方法不执行，类似于JUnit4中的@Ignore
+- **@Timeout :**表示测试方法运行如果超过了指定时间将会返回错误
+
+- 断言：对测试需要满足的条件进行验证，这些断言方法都是的静态方法。如果断言正确不会有反应，如果断言失败会测试失败。
+
+| 方法              | 说明                                             |
+| ----------------- | ------------------------------------------------ |
+| assert(Not)Equals | 判断两个对象或两个原始类型是否(不)相等           |
+| assert(Not)Same   | 判断两个对象引用是否指向(不同/同一个)对象        |
+| assertTrue/False  | 判断给定的布尔值是否为 true/false                |
+| assert(Not)Null   | 判断给定的对象引用是否(不)为 null                |
+| assertArrayEquals | 判断两个对象或原始类型的数组是否相等             |
+| assertAll         | 组合断言，只有所有的断言都成功，这个断言才算成功 |
+| assertNull        | 判断给定的对象引用是否为 null                    |
+| assertNotNull     | 判断给定的对象引用是否不为 null                  |
+
+- 异常断言：断定一定会出现某种异常，不出现反而停止运行
+- 超时断言
+- 快速失败
+
+前置条件（assumptions）：使得测试方法的执行终止，不会失败。 assumeTrue、assumeFalse等。
+
+嵌套测试：@Nested加在里层的测试类上面，表示嵌套测试。before/after只对于同层或者更里层的测试有效，对于外层不生效。
+
+## 集合
 
 ```java
 |----Collection接口：单列集合，用来存储一个一个的对象;类要重写equals()

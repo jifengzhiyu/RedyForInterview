@@ -172,3 +172,20 @@ Redis提供了两种不同的持久化方法可以将数据存储在磁盘中，
   - 单独的隔离操作 
   - 没有隔离级别的概念，不涉及多个事务访问相同资源，redis事务是单独的隔离操作 
   - 不保证原子性，事务中如果有一条命令执行失败，其后的命令仍然会被执行，没有回滚
+
+## RedisTemplate
+
+利用SpringBoot整合Redis，会自动注入RedisTemplate<Object, Object> ，StringRedisTemplate（k：v都是String），我们使用*StringRedisTemplate、RedisTemplate就可以操作redis。
+
+RedisTemplate底层使用lettuce，可以手动切换jedis
+
+```java
+@Test
+void testRedis(){
+    ValueOperations<String, String> operations = redisTemplate.opsForValue();
+    operations.set("hello","world");
+
+    String hello = operations.get("hello");
+    System.out.println(hello);
+}
+```
