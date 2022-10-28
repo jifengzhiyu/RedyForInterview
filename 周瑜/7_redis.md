@@ -7,7 +7,7 @@
 - 优点：
 
   1. 速度快，因为数据存在内存中
-  2. 支持丰富数据类型，其5种常用数据类型string，list，set，sortedset/zset( <key><score1>)，hash（键值对集合，string类型的field和value的映射表）
+  2. 支持丰富数据类型，**其5种常用数据类型string，list，set，sortedset/zset( <key><score1>)，hash**（键值对集合，string类型的field和value的映射表，适合存储对象）
   3. 支持事务，事务在执行的过程中，不会被其他客户端发送来的命令请求所打断；单个命令的执行是原子性，要么执行，要么不执行
   4. 可用于缓存，key设置过期时间，过期后将会自动删除
   5. 支持数据持久化，支持**AOF和RDB**两种持久化方式。
