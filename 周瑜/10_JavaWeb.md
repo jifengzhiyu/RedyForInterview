@@ -295,6 +295,3 @@ http://  localhost   :8080   /pro23          /page.do                        ?op
 
       1. 解析IOC的配置文件，创建一个一个的组件，并完成组件之间依赖关系的注入
       2. 将IOC容器保存到application作用域
-
----
-
