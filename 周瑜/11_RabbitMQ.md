@@ -2,7 +2,7 @@ https://www.cnblogs.com/kebibuluan/p/13061319.html
 
 https://www.bilibili.com/video/BV1TE411g74u
 
-# RabbitMQ
+# 11_RabbitMQ
 
 - 消息队列/消息中间件[MQ(Message Queue)]，实现应用程序和应用程序之间的通信。
   - 队列（容器）：先进先出
