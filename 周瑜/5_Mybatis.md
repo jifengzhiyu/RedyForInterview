@@ -1,20 +1,19 @@
 # 5_Mybatis
 
-## 0_Mybatis是什么
+## Mybatis是什么
 
 是一个基于Java的持久层框架。
 
-## 1_Mybatis的优缺点
+## Mybatis优缺点
 
 优点：
 
 1. 基于 SQL 语句编程，灵活，不会对应用程序或者数据库的**现有设计**造成影响；
-   SQL 写在XML 里，便于统一管理，解除 sql 与程序代码的耦合；
-   支持编写**动态** SQL 语句， 可重用。
+2. SQL 写在XML 里，便于统一管理，解除 sql 与程序代码的耦合；
+3. 支持编写**动态** SQL 语句， 可重用。
 2. 与 JDBC 相比，减少了代码量，**不需要手动开关连接**，设置参数以及获取结果集；
 3. 与各种数据库**兼容**（ 因为 MyBatis 使用 JDBC 来连接数据库，所以只要JDBC 支持的数据库 MyBatis 都支持）。
 4. 能够与 Spring 很好的**集成**；
-5. 提供映射标签， **支持对象与数据库的 ORM 字段关系映射**； 提供**对象关系映射标签， 支持对象关系组件维护**。
 
 缺点：
 
@@ -22,42 +21,38 @@
    字段映射时，有时需要额外配置很多映射关系。
 2. SQL 语句依赖于数据库， 导致数据库**移植性**差， 不能随意更换数据库。
 
-## 2_MyBatis与Hibernate、JDBC对比(重要)
+## MyBatis与Hibernate、JDBC对比(重要)
+
+> ORM(Object Relation Mapping)对象关系映射：Java bean和数据库数据进行双向映射
 
 - JDBC
 
-     - SQL夹杂在Java代码中，耦合度高，导致硬编码内伤
-     - 维护不易且实际开发需求中SQL有变化，频繁修改的情况多见
-     - 代码冗长，开发效率低
-
+     1. SQL夹杂在Java代码中，耦合度高，导致硬编码内伤
+     2. 代码冗长，开发效率低
 - Hibernate
 
      - Hibernate优点：
-          - 数据库无关性好；
-          - 有映射关系的维护，是ORM框架，可以通过操作java对象操作数据库；
-          - 开发效率高，更专注于业务。
-
+          1. **数据库无关性好**；
+          2. 有映射关系的维护，是ORM框架，可以通过操作java对象操作数据库；
+          3. 开发效率高，更专注于业务。
      - Hibernate缺点：
-          - 学习门槛高；程序中的长难复杂SQL需要绕过框架；
-          - 内部自动生产的SQL，不容易做特殊优化；
-          - 基于全映射的全自动框架大量字段的POO进行部分映射时比较困难。
-          - 反射操作太多，导致数据库性能下降。
+          1. 学习门槛高；程序中的长难复杂SQL需要绕过框架；
+          2. 内部自动生产的SQL，不容易做特殊优化；
+          3. 反射操作太多，导致数据库性能下降。
+     - MyBatis优点
+          - MyBatis优点：
+               1. 轻量级，性能出色；
+               2. 入门简单；是一个半自动的ORM框架；
+               3. 手动编写sql，灵活。
+          - MyBatis缺点：
+               1. 框架比较简陋，功能尚有缺失
+               2. 写sql工作量比较大
+- 使用建议：
+     - 复杂查询少，**对象模型**要求高，用Hibernate，封装性高
+     - 复杂查询多，对象模型要求低，用MyBatis，方便管理、灵活
 
 
-     - MyBatis优点：
-       - 轻量级，性能出色；
-       - 入门简单；是一个半自动的ORM(Object Relation Mapping)框架；
-       - 手动编写sql，灵活。
-
-
-     - MyBatis缺点：框架比较简陋，功能尚有缺失，写sql工作量比较大，而且不太容易适应**快速数据库修改**。
-
-- 使用建议：复杂查询少，对象模型要求高，用Hibernate，封装性高
-      复杂查询多，对象模型要求低，用MyBatis，方便管理、灵活
-
-> ORM对象关系映射：Java bean和数据库数据进行双向映射
-
-## 3_#{}和${}的区别是什么？
+## #{}和${}区别
 
 - \#{}是**预编译处理、是占位符**， ${}是**字符串替换、是拼接符**。
 
@@ -71,29 +66,17 @@
 
 - 使用#{}可以有效的**防止 SQL 注入**， 提高系统安全性。
 
-## 4_简述Mybatis的插件运行原理，如何编写一个插件（先不背）
+## MyBatis缓存
 
-- 比如分页插件
-- Mybatis的插件，指的就是Mybatis的拦截器，只能拦截4个接口
-  - Executor（生成sql语句，维护sql语句查询缓存）、
-  - ParameterHandler（将sql的java类型参数转换数据库支持类型）、
-  - StatementHandler（往sql传参数，对结果集映射） 、
-  - ResultSetHandler（接收结果集）
-    Mybatis 使用 JDK 的动态代理（方法增强，前/后拦截逻辑）， 为需要拦截的接口生成代理对象以实现接口方法拦截功能， 每当执行这 4 种接口对象的方法时，就会进入拦截方法，具体就是 InvocationHandler 的invoke() 方法， 拦截那些你指定需要拦截的方法。
+下次查询相同的数据，就会从缓存中直接获取，不会从数据库重新访问
 
-编写插件： 实现 Mybatis 的 Interceptor 接口并实现 intercept()方法， 方法提供invocation参数来获取代理的目标对象，来获取四个接口拦截的方法内的参数，给插件编写注解， 指定要拦截哪一个接口的哪些方法即可， 在配置文件中配置编写的插件 或 @Component 。
-
-```java
-@Intercepts({@Signature(type = StatementHandler.class, method = "query", args = {Statement.class, ResultHandler.class}),
-@Signature(type = StatementHandler.class, method = "update", args = {Statement.class}),
-@Signature(type = StatementHandler.class, method = "batch", args = { Statement.class })}),
-@Component 
-
-//query()执行之前做的操作
-invocation.proceed()执行目标类具体的业务逻辑
-  //比如拦截StatementHandler的query() = 具体的业务逻辑
-//query()执行之后做的操作
-```
+- 一级缓存是SqlSession级别的，通过同一个SqlSession查询的数据会被缓存;
+- 二级缓存是SqlSessionFactory级别，通过同一个SqlSessionFactory创建的SqlSession查询的结果会被缓存；
+- 缓存查询的顺序
+  1. 先查询二级缓存，因为二级缓存中可能会有其他程序已经查出来的数据，可以拿来直接使用。
+  2. 如果二级缓存没有命中，再查询一级缓存
+  3. 如果一级缓存也没有命中，则查询数据库
+- SqlSession关闭之后，一级缓存中的数据会写入二级缓存
 
 ## Mybatis使用
 
@@ -142,8 +125,6 @@ insert into t_user values(null,'张三','123',23,'女')
 * @param id
 * @return
 */
-User getUserById(@Param("id") int id);
-
 <!--User getUserById(@Param("id") int id);-->
 <select id="getUserById" resultType="User">
 select * from t_user where id = #{id}
@@ -156,16 +137,32 @@ select * from t_user where id = #{id}
 <!--结果：{password=123456, sex=男, id=1, age=23, username=admin}-->
 ````
 
-## MyBatis的缓存
+---
 
-下次查询相同的数据，就会从缓存中直接获取，不会从数据库重新访问
+下面先不背：
 
-- 一级缓存是SqlSession级别的，通过同一个SqlSession查询的数据会被缓存，下次查询相同的数据，就
-  会从缓存中直接获取，不会从数据库重新访问
-- 二级缓存是SqlSessionFactory级别，通过同一个SqlSessionFactory创建的SqlSession查询的结果会被
-  缓存；
-- 缓存查询的顺序
-  - 先查询二级缓存，因为二级缓存中可能会有其他程序已经查出来的数据，可以拿来直接使用。
-    如果二级缓存没有命中，再查询一级缓存
-    如果一级缓存也没有命中，则查询数据库
-    SqlSession关闭之后，一级缓存中的数据会写入二级缓存
+## Mybatis的插件运行原理，如何编写一个插件
+
+- 比如分页插件
+- Mybatis的插件，指的就是Mybatis的拦截器，只能拦截4个接口
+  - Executor（生成sql语句，维护sql语句查询缓存）、
+  - ParameterHandler（将sql的java类型参数转换数据库支持类型）、
+  - StatementHandler（往sql传参数，对结果集映射） 、
+  - ResultSetHandler（接收结果集）
+    Mybatis 使用 JDK 的动态代理（方法增强，前/后拦截逻辑）， 为需要拦截的接口生成代理对象以实现接口方法拦截功能， 每当执行这 4 种接口对象的方法时，就会进入拦截方法，具体就是 InvocationHandler 的invoke() 方法， 拦截那些你指定需要拦截的方法。
+
+编写插件： 实现 Mybatis 的 Interceptor 接口并实现 intercept()方法， 方法提供invocation参数来获取代理的目标对象，来获取四个接口拦截的方法内的参数，给插件编写注解， 指定要拦截哪一个接口的哪些方法即可， 在配置文件中配置编写的插件 或 @Component 。
+
+```java
+@Intercepts({@Signature(type = StatementHandler.class, method = "query", args = {Statement.class, ResultHandler.class}),
+@Signature(type = StatementHandler.class, method = "update", args = {Statement.class}),
+@Signature(type = StatementHandler.class, method = "batch", args = { Statement.class })}),
+@Component 
+
+//query()执行之前做的操作
+invocation.proceed()执行目标类具体的业务逻辑
+  //比如拦截StatementHandler的query() = 具体的业务逻辑
+//query()执行之后做的操作
+```
+
+## 
