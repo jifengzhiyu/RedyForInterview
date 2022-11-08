@@ -1,4 +1,4 @@
-周瑜：https://www.bilibili.com/video/BV1Mg411S74N/?spm_id_from=333.999.0.0&vd_source=1a93f17d4138aae10f5cc67210f18faf
+ 周瑜：https://www.bilibili.com/video/BV1Mg411S74N/?spm_id_from=333.999.0.0&vd_source=1a93f17d4138aae10f5cc67210f18faf
 
 硬核干货！为了帮你2022年面试跳槽 能成功进大厂。我费尽心血整理了这200道Java高频面试题
 
@@ -11,8 +11,9 @@
 - 数值型：
   - 整型：byte（1字节）、short（2字节）、int（4字节）、long（8字节）
   - 浮点型：float（4字节）、double（8字节）
-- 字符型：char（2字节）
-- 布尔型：boolean（1字节）
+  - 字符型：char（2字节）
+- 非数值型：
+  - 布尔型：boolean（1字节）
 
 引用数据类型：类、接口、数组
 
