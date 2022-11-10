@@ -1,4 +1,4 @@
- 周瑜：https://www.bilibili.com/video/BV1Mg411S74N/?spm_id_from=333.999.0.0&vd_source=1a93f17d4138aae10f5cc67210f18faf
+周瑜：https://www.bilibili.com/video/BV1Mg411S74N/?spm_id_from=333.999.0.0&vd_source=1a93f17d4138aae10f5cc67210f18faf
 
 硬核干货！为了帮你2022年面试跳槽 能成功进大厂。我费尽心血整理了这200道Java高频面试题
 
@@ -13,7 +13,7 @@
   - 浮点型：float（4字节）、double（8字节）
   - 字符型：char（2字节）
 - 非数值型：
-  - 布尔型：boolean（1字节）
+  - 布尔型：**boolean**（1字节）
 
 引用数据类型：类、接口、数组
 
@@ -337,7 +337,7 @@ class outclass{
   所以通常也不建议在代码中去**捕获**这些Error，因为捕获的意义不⼤，因为程序可能根本运⾏不了。 
 - Exception表示异常，表示程序出现Exception时，是可以靠程序⾃⼰来解决的。 
   - Exception的⼦类通常⼜可以分为RuntimeException和⾮RuntimeException两类 
-  - RunTimeException表示运⾏期异常，表示这个异常是在代码运⾏过程中抛出的，这些异常是**⾮检查异常**，程序中**可以选择捕获**处理，也可以不处理。这些异常⼀般是由程序逻辑错误引起的，程序应该从逻辑⻆度尽可能避免这类异常的发⽣，⽐如**NullPointerException**、**IndexOutOfBoundsException**等。 
+  - RunTimeException表示运⾏期异常，表示这个异常是在代码运⾏过程中抛出的，这些异常是**⾮检查异常**，程序中**可以选择捕获**处理，也可以不处理。这些异常⼀般是由程序逻辑错误引起的，程序应该从逻辑⻆度尽可能避免这类异常的发⽣，⽐如**NullPointerException**(arr=null,访问arr)、**IndexOutOfBoundsException**等。 
   - ⾮RuntimeException表示⾮运⾏期异常，也就是我们常说的检查异常，是必须进⾏处理的异常，如果不处理，程序就不能检查异常通过。如**IOException**、**SQLException**等以及⽤户**⾃定义**的Exception异常。 
 
 ## 异常处理机制中，什么时候抛出异常，捕获异常？
@@ -394,7 +394,7 @@ class outclass{
 
 - 区与存储内容：
   1. 方法区存储**类的信息**
-  2. 堆区存储对象
+  2. 堆区存储引用数据类型数据
   3. 虚拟机栈存储Java方法信息
   4. 本地方法栈存储**native方法**信息
   5. 程序计数器：每个线程当前执行到第几行代码
