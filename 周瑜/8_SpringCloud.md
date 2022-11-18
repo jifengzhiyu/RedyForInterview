@@ -29,43 +29,41 @@
 
 ## SpringCloud和SpringBoot关系
 
-- Spring Boot 是 Spring 的一套快速配置脚手架，可以基于Spring Boot 快速开发单个微服务，Spring Cloud是一个基于Spring Boot实现的开发工具；
-- Spring Boot专注于快速、方便集成的单个微服务个体，Spring Cloud关注全局的服务治理框架； 
-- Spring Boot使用了默认大于配置的理念，很多集成方案已经帮你选择好了，能不配置就不配置，Spring Cloud很大的一部分是基于Spring Boot来实现，必须基于Spring Boot开发。可以单独使用Spring Boot开发项目，但是Spring Cloud离不开 Spring Boot。
+- Spring Boot 是 Spring 的一套快速配置脚手架，Spring Cloud是一个基于Spring Boot实现的开发工具；
+- Spring Boot专注于快速、方便集成单个微服务个体，Spring Cloud关注**全局的服务治理框架**； 
 
 ## 微服务的基础服务组件
 
-- 服务发现——Netflix Eureka （Nacos）
-- 服务调用——Netflix Feign
-- 熔断器——Netflix Hystrix 
-- 服务网关——Spring Cloud GateWay 
-- 分布式配置——Spring Cloud Config  （Nacos）
-- 消息总线 —— Spring Cloud Bus （Nacos）
+1. 服务发现——Netflix Eureka （Nacos）
+2. 服务调用——Netflix Feign
+3. 熔断器——Netflix Hystrix 
+4. 服务网关——Spring Cloud GateWay 
+5. **分布式配置**——Spring Cloud Config  （Nacos）
+6. 消息总线 —— Spring Cloud Bus （Nacos）
 
 ## Spring Cloud具体调用
 
 Spring Cloud 在接口调用上，大致会经过如下几个组件配合：
 
-- 接口化请求调用：调用端 指定调用服务名称，定义调用的方法路径--->
-- Nacos服务发现，找到需要调用的服务--->
-- Feign服务调用--->
-- Hystrix熔断器：需要调用的服务能不能调到（服务器宕机），调不到就熔断--->
-- Ribbon负载均衡：将请求平均分担到集群的服务器中--->
-- Http Client(apache http components 或者 Okhttp)：真正执行方法
+1. 调用端 **指定调用服务名称，定义调用的方法路径**--->
+2. Nacos服务发现，找到需要调用的服务--->
+3. Feign服务调用--->
+4. Hystrix熔断器：需要调用的服务能不能调到（服务器宕机），调不到就熔断--->
+5. Ribbon**负载均衡**：将请求平均分担到集群的服务器中--->
+6. **Http Client**(apache http components 或者 Okhttp)：真正执行方法
 
 ## Nacos
 
 ![image-20221027164248780](Pic/image-20221027164248780.png)
 
-- Nacos 是阿里巴巴推出来的一个新开源项目，是一个更易于构建云原生应用的动态**服务发现**、配置管理和服务管理平台。
+- Nacos 是阿里巴巴推出来的一个新开源项目，是一个更易于**构建云原生应用的动态服务发现、配置管理和服务管理平台**。
 - 服务发现功能：
   - 注册中心：
-    - 注册中心使用Nacos
-    - 注册中心是用来集中管理微服务，实现服务的注册，发现，检查等功能；
-    - 实现不同的微服务模块之间调用，把这些模块在注册中心进行注册，注册之后，实现互相调用。
-  - 注册中心和服务发现：服务 A 与服务 B 注册进注册中心 C，形成服务注册表（表里登记了服务 A 和服务 B 的地址等相关信息）。当 A 服务想要访问 B 服务时，可以通过注册中心 C 的**服务发现机制**，获取服务注册表进而找到服务 B；
+    - 注册中心用来集中管理微服务，实现服务的**注册，发现，检查**等功能；
+    - 把这些模块在注册中心进行注册，实现不同微服务模块之间调用
+  - 注册中心和服务发现：服务 A 与服务 B 注册进注册中心，形成**服务注册表**（表里登记了服务 A 和服务 B 的地址等相关信息）。当 A 服务想要访问 B 服务时，可以通过注册中心的**服务发现机制**，获取服务注册表进而找到服务 B；
   - 使用：
-    - 启动类添加注解@EnableDiscoveryClient，该服务就注册到注册中心
+    - 启动类添加注解**@EnableDiscoveryClient**，该服务就注册到注册中心
 - 分布式配置：使用配置中心实现。
   - 配置中心：做配置文件的统一管理
   - 以前，多个服务各自用自己的配置文件application.properties；现在，多个服务使用配置中心的一个配置文件application.properties。方便统一管理配置文件。
@@ -73,11 +71,10 @@ Spring Cloud 在接口调用上，大致会经过如下几个组件配合：
 
 ## Feign
 
-- SpringCloud里面用来**服务调用**。Feign是Netflix开发的声明式、模板化的HTTP客户端， Feign可以帮助我们更快捷、优雅地调用HTTP API。
-- 使用Spring Cloud feign，只需要创建一个接口并用注解方式配置它，即可完成服务提供方的接口绑定。
+- 用来**服务调用**。Feign是Netflix开发的声明式、模板化的HTTP客户端， Feign可以帮助我们更快捷、优雅地调用HTTP API。
 - 使用：前提，服务已经注册过。
   - 在**调用端**的启动类添加注解@EnableFeignClients
-  - 在调用端 创建interface，使用注解指定调用服务名称，定义调用的方法路径
+  - 在调用端 创建interface，使用注解**指定调用服务名称，定义调用的方法路径，完成服务提供方的接口绑定**
   - 调用
 
 ```java
@@ -97,11 +94,11 @@ vodClient.removeVideo(videoSourceId);
 
 ## Hystrix
 
-- Hystrix 是一个供分布式系统使用，提供延迟(延长请求超时限制)和容错(服务器宕机，熔断机制触发，其他请求也不能请求该服务器)功能，保证复杂的分布系统在面临不可避免的失败时，仍能有其弹性。
+- Hystrix **供分布式系统使用，提供延迟**(延长请求超时限制)和**容错**(服务器宕机，熔断机制触发，其他请求也不能请求该服务器)功能，保证复杂的分布系统在面临不可避免的失败时，仍能有弹性。
 
 - 使用：
 
-  - 创建interface对应实现类，在实现类实现方法，出错了输出内容
+  - 创建interface对应实现类，在实现类 实现方法，出错了输出内容
 
   ```java
   @Component
@@ -126,8 +123,12 @@ vodClient.removeVideo(videoSourceId);
 ## GateWay
 
 - 网关：在客户端和服务端中间一面墙，可以请求转发，负载均衡，权限控制等。
-- Nginx与网关都是可以实现对接口的拦截，负载均衡、反向代理、请求过滤等。
 - 网关也是服务，要到注册中心注册；通过网关来访问其他服务，客户端访问网关的端口号
+- Nginx起到网关作用
+
+---
+
+下面先不背
 
 ## 分布式
 
