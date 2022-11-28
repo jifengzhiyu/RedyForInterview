@@ -70,8 +70,8 @@
 
 下次查询相同的数据，就会从缓存中直接获取，不会从数据库重新访问
 
-- 一级缓存是SqlSession级别的，通过同一个SqlSession查询的数据会被缓存;
-- 二级缓存是SqlSessionFactory级别，通过同一个SqlSessionFactory创建的SqlSession查询的结果会被缓存；
+- 一级缓存是**SqlSession**级别的，通过同一个SqlSession查询的数据会被缓存;
+- 二级缓存是**SqlSessionFactory**级别，通过同一个SqlSessionFactory创建的SqlSession查询的结果会被缓存；
 - 缓存查询的顺序
   1. 先查询二级缓存，因为二级缓存中可能会有其他程序已经查出来的数据，可以拿来直接使用。
   2. 如果二级缓存没有命中，再查询一级缓存

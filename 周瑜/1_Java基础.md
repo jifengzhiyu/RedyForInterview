@@ -6,7 +6,7 @@
 
 ## Java数据类型
 
-基本数据类型：
+基本数据类型8：
 
 - 数值型：
   - 整型：byte（1字节）、short（2字节）、int（4字节）、long（8字节）
@@ -244,8 +244,9 @@ class outclass{
 			|----LinkedHashSet：作为HashSet的子类；遍历其内部数据时，可以按照添加的顺序遍历,对于频繁的遍历操作，LinkedHashSet效率高于HashSet.
 		|----TreeSet：默认按照添加的顺序排序，可以按照添加对象的指定属性，进行排序；底层红黑树。
  
+     
       
-	|----Map接口：双列集合，用来存储一对(key - value)一对的数据   -->高中函数：y = f(x)
+|----Map接口：双列集合，用来存储一对(key - value)一对的数据   -->高中函数：y = f(x)
 		|----HashMap:作为Map的主要实现类；线程不安全，效率高；存储null的key和value
 			|----LinkedHashMap:保证在遍历map元素时，可以按照添加的顺序实现遍历。
                         底层使用双向链表存储。
@@ -263,7 +264,7 @@ class outclass{
 
 - Set：
   - ⽆序，不可重复，**最多允许有⼀个Null元素**
-  - 只能用Iterator接口取出所有元素，再逐一遍历各个元素
+  - 使⽤Iterator 或 增强for
 
 
 ## ArrayList和LinkedList区别
@@ -274,7 +275,7 @@ class outclass{
 2. **适⽤场景**也不同，ArrayList更适合**查找**、**下标访问**，LinkedList更适合 **删除和添加(**不适合查询：需要逐一遍历)
 3. 另外ArrayList和LinkedList都实现了List接⼝，但是LinkedList还额外实现了Deque接⼝，所以 LinkedList还可以当做队列来使⽤
 
-- ArrayList扩容机制：数组**长度固定**，超出长度存数据时需要新建数组，然后将老数组的数据拷贝到新数组，如果不是尾部插入数据还会涉及到**元素的移动**
+- ArrayList扩容机制：数组**长度固定**，默认容量10，超出长度存数据时需要新建数组，新数组长度*1.5，然后将老数组的数据拷贝到新数组，如果不是尾部插入数据还会涉及到**元素的移动**
   使用**尾插法**并指定初始容量可以极大提升性能、甚至超过LinkedList(需要创建大量的node对象)
 - LinkedList:遍历LinkedList必须使用iterator，不能使用**for循环**，因为每次for循环体内通过**get(i)**取得某一元素时都需要对list重新进行遍历，**性能消耗**极大。
 
