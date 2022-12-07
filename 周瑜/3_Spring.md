@@ -21,12 +21,11 @@
 
 ## AOP理解
 
-- AOP思想，面向切面，不修改源代码，在主干功能里添加新功能，底层使用动态代理（JDK动态代理、CGLIB动态代理）
+- AOP思想，**面向切面**，不修改源代码，在主干功能里添加新功能，底层使用**动态代理**（JDK动态代理、CGLIB动态代理）
 - 解释：
   - **系统**是由许多不同组件组成，每个组件各负责特定功能，还经常承担着额外的职责，如**日志、事务管理和安全**
   - OOP（面向对象）显得无能为力，导致代码重复，不利于各个模块重用。OOP允许定义**从上到下**关系，不适合定义从**左到右**关系。如日志代码往往水平地散布在所有对象层次中。
   
-
 - 使用逻辑：AOP将程序中的交叉业务逻辑（比如安全，日志，事务等），封装成一个**切面**，注入到目标对象（具体业务逻辑）中。
 - 实现效果：如一个接口里面没有写打印日志逻辑，但是自动拥有打印日志功能。
 - 几个术语：
@@ -52,7 +51,7 @@
 
 - 什么是控制反转：
 
-  - 对象控制权的转移，把创建对象及给属性赋值的控制权转移给Spring。
+  - 对象控制权的转移，把**创建对象及给属性赋值**的控制权转移给Spring。
     我们要做的仅仅是定义类，以及定义哪些**属性**需要Spring来赋值 (比如某个属性上加@Autowired)
 
   - 优点：减轻了程序员的负担，耦合度降低。
@@ -113,43 +112,10 @@ spring事务的原理是AOP，进行了切面增强，那么失效（方法上�
 
 ## 什么是bean的自动装配，有哪些方式？
 
-- 自动装配：Spring利用依赖注入(DI)，完成对IOC容器中各个组件的依赖关系赋值。
-
-- **缺省情况下**，通过**“ref”属性**手动设定
-
-```
-手动装配：以value或ref的方式明确指定属性值都是手动装配。 
-需要通过‘ref’属性来连接bean。
-```
-
-- byName ---根据bean的属性**名称**进行自动装配。
-
-
-```xml
-Cutomer的属性名称是person，Spring会将bean id为person的bean通过setter方法进行自动装配。
-<bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="byName"/> 
-<bean id="person" class="com.xxx.xxx.Person"/>
-```
-
-- byType---根据bean的**类型**进行自动装配。
-
-
-```xml
-  Cutomer的属性person的类型为Person，Spirng会将Person类型通过setter方法进行自动装配。
-  <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="byType"/>
-  <bean id="person" class="com.xxx.xxx.Person"/>
-```
-
-  -  constructor---如果一个bean与**构造器参数的类型**相同，则进行自动装配，否则导致异常。
-
-
-```xml
-  Cutomer构造函数的参数person的类型为Person，Spirng会将Person类型通过构造方法进行自动装配。
-  <bean id="cutomer" class="com.xxx.xxx.Cutomer" autowire="construtor"/>
-  <bean id="person" class="com.xxx.xxx.Person"/>
-```
-
-  -  @Autowired注解方式自动装配bean，可以在**字段、setter方法、构造方法**上使用。无论@Autowired注解是标注在字段上、setter方法上、构造方法上还是参数上，参数位置的组件都是从IOC容器中获取。
+- no：xml配置
+- byName：根据属性名称 （`@Resource`）
+- byType：根据属性类型（`@Autowired`）
+- constructor：根据构造函数匹配（根据构造参数类型）
 
 ## Spring Bean的生命周期？
 
