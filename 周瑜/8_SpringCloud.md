@@ -13,16 +13,16 @@
 ## 微服务优缺点
 
 - 优点：
-  1. 服务简单，便于学习和上手，容易维护
-  2. 独立部署，灵活扩展
-  3. 技术栈丰富，不同模块之间可以使用不同的技术
+    1. 服务简单，便于学习和上手，容易维护
+    2. 独立部署，灵活扩展
+    3. 技术栈丰富，不同模块之间可以使用不同的技术
 - 缺点
-  1. 运维成本太高----需要过多的服务器，颗粒细化，维护成本高
-  2. 接口可能不匹配----session一致性需要去保持
-  3. 代码可能重复
-  4. 架构复杂度提高，Nginx配置以及**多服务的部署**，运维复杂性增加。
+    1. 运维成本太高----需要过多的服务器，颗粒细化，维护成本高
+    2. 接口可能不匹配----session一致性需要去保持
+    3. 代码可能重复
+    4. 架构复杂度提高，Nginx配置以及**多服务的部署**，运维复杂性增加。
 
-## SpringCloud  
+## SpringCloud
 
 - Spring Cloud是微服务的开发框架，是**一系列框架的集合**。
 - 它利用Spring Boot的开发便利性简化了分布式系统基础设施的开发，如**服务发现、服务注册、配置中心、消息总线、负载均衡、 熔断器、数据监控**等，都可以用Spring Boot的开发风格做到**一键启动和部署**。
@@ -30,15 +30,15 @@
 ## SpringCloud和SpringBoot关系
 
 - Spring Boot 是 Spring 的一套快速配置脚手架，Spring Cloud是一个基于Spring Boot实现的开发工具；
-- Spring Boot专注于快速、方便集成单个微服务个体，Spring Cloud关注**全局的服务治理框架**； 
+- Spring Boot专注于快速、方便集成单个微服务个体，Spring Cloud关注**全局的服务治理框架**；
 
 ## 微服务的基础服务组件
 
 1. 服务发现——Netflix Eureka （Nacos）
 2. 服务调用——Netflix Feign
-3. 熔断器——Netflix Hystrix 
-4. 服务网关——Spring Cloud GateWay 
-5. **分布式配置**——Spring Cloud Config  （Nacos）
+3. 熔断器——Netflix Hystrix
+4. 服务网关——Spring Cloud GateWay
+5. **分布式配置**——Spring Cloud Config （Nacos）
 6. 消息总线 —— Spring Cloud Bus （Nacos）
 
 ## Spring Cloud具体调用
@@ -58,24 +58,25 @@ Spring Cloud 在接口调用上，大致会经过如下几个组件配合：
 
 - Nacos 是阿里巴巴推出来的一个新开源项目，是一个更易于**构建云原生应用的动态服务发现、配置管理和服务管理平台**。
 - 服务发现功能：
-  - 注册中心：
-    - 注册中心用来集中管理微服务，实现服务的**注册，发现，检查**等功能；
-    - 把这些模块在注册中心进行注册，实现不同微服务模块之间调用
-  - 注册中心和服务发现：服务 A 与服务 B 注册进注册中心，形成**服务注册表**（表里登记了服务 A 和服务 B 的地址等相关信息）。当 A 服务想要访问 B 服务时，可以通过注册中心的**服务发现机制**，获取服务注册表进而找到服务 B；
-  - 使用：
-    - 启动类添加注解**@EnableDiscoveryClient**，该服务就注册到注册中心
+    - 注册中心：
+        - 注册中心用来集中管理微服务，实现服务的**注册，发现，检查**等功能；
+        - 把这些模块在注册中心进行注册，实现不同微服务模块之间调用
+    - 注册中心和服务发现：服务 A 与服务 B 注册进注册中心，形成**服务注册表**（表里登记了服务 A 和服务 B 的地址等相关信息）。当 A 服务想要访问 B 服务时，可以通过注册中心的**服务发现机制**
+      ，获取服务注册表进而找到服务 B；
+    - 使用：
+        - 启动类添加注解**@EnableDiscoveryClient**，该服务就注册到注册中心
 - 分布式配置：使用配置中心实现。
-  - 配置中心：做配置文件的统一管理
-  - 以前，多个服务各自用自己的配置文件application.properties；现在，多个服务使用配置中心的一个配置文件application.properties。方便统一管理配置文件。
-  - 配置文件加载顺序：bootstrap-->application(可以使用配置中心)-->application-dev（可以使用配置中心）
+    - 配置中心：做配置文件的统一管理
+    - 以前，多个服务各自用自己的配置文件application.properties；现在，多个服务使用配置中心的一个配置文件application.properties。方便统一管理配置文件。
+    - 配置文件加载顺序：bootstrap-->application(可以使用配置中心)-->application-dev（可以使用配置中心）
 
 ## Feign
 
 - 用来**服务调用**。Feign是Netflix开发的声明式、模板化的HTTP客户端， Feign可以帮助我们更快捷、优雅地调用HTTP API。
 - 使用：前提，服务已经注册过。
-  - 在**调用端**的启动类添加注解@EnableFeignClients
-  - 在调用端 创建interface，使用注解**指定调用服务名称，定义调用的方法路径，完成服务提供方的接口绑定**
-  - 调用
+    - 在**调用端**的启动类添加注解@EnableFeignClients
+    - 在调用端 创建interface，使用注解**指定调用服务名称，定义调用的方法路径，完成服务提供方的接口绑定**
+    - 调用
 
 ```java
 //指定从哪个服务中调用功能 ，名称与被调用的服务名保持一致。
@@ -98,7 +99,7 @@ vodClient.removeVideo(videoSourceId);
 
 - 使用：
 
-  - 创建interface对应实现类，在实现类 实现方法，出错了输出内容
+    - 创建interface对应实现类，在实现类 实现方法，出错了输出内容
 
   ```java
   @Component
@@ -114,7 +115,7 @@ vodClient.removeVideo(videoSourceId);
   }
   ```
 
-  - 在interface上面添加注解和属性
+    - 在interface上面添加注解和属性
 
   ```java
   @FeignClient(name = "service-vod", fallback = VodFileDegradeFeignClient.class)
